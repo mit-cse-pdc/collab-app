@@ -1,0 +1,78 @@
+# Application Properties
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway-service
+  cloud:
+    gateway:
+      #      discovery:
+      #        locator:
+      #          enabled: true
+      #      default-filters:
+      #        - DedupeResponseHeader=Access-Control-Allow-Origin
+      #      globalcors:
+      #        cors-configurations:
+      #          '[/**]':
+      #            allowedOrigins: "*"
+      #            allowedMethods: "*"
+      #            allowedHeaders: "*"
+      routes:
+        - id: "user-service"
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/v1/faculty/**, /api/v1/students/**
+
+        - id: "college-management-service"
+          uri: lb://COLLEGE-MANAGEMENT-SERVICE
+          predicates:
+            - Path=/api/v1/schools/**
+
+        - id: "auth-service"
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/api/v1/auth/**
+
+# Service URLs
+#services:
+#  college-management:
+#    url: http://localhost:8082
+#  auth:
+#    url: http://localhost:8081
+#  user:
+#    url: http://localhost:8083
+
+# Gateway Security Configuration
+gateway:
+  security:
+    publicPaths:
+      - "/departments/**"
+      - "/semesters/**"
+      - "/auth/login"
+      - "/auth/register"
+      - "/auth/verify/**"
+      - "/auth/reset-password/**"
+      - "/faculty/**"
+
+# Eureka Configuration
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    hostname: localhost
+
+# JWT Configuration
+jwt:
+  secret: vuiwhfiodcrowdancioldwbfncio3901uwqeid2ceniodlf
+
+# Logging Configuration
+logging:
+  level:
+    com.college.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: INFO
