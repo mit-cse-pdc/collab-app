@@ -26,12 +26,12 @@ public class Student extends BaseEntity {
     @Column(name = "registration_no", nullable = false, unique = true)
     private String registrationNo;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "password", nullable = false)
     private String password;
-
-    @Column(nullable = false)
-    private String name;
 }

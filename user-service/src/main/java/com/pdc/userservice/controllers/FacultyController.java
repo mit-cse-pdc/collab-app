@@ -97,4 +97,13 @@ public class FacultyController {
         Boolean exists = facultyService.existsByEmail(email);
         return ResponseEntity.ok(exists);
     }
+
+    @Operation(summary = "Check if faculty exists", description = "Checks if a faculty member exists with the given ID")
+    @GetMapping("/exists/{id}")
+    public ResponseEntity<Boolean> checkFacultyExists(
+            @Parameter(description = "Faculty ID to check", required = true) @PathVariable UUID id
+    ) {
+        Boolean exists = facultyService.existsById(id);
+        return ResponseEntity.ok(exists);
+    }
 }

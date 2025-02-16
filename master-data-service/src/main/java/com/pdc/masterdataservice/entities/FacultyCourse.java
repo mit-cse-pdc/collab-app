@@ -17,6 +17,7 @@ import java.util.UUID;
 public class FacultyCourse extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "faculty_course_id")
     private UUID facultyCourseId;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -1,6 +1,6 @@
 package com.pdc.userservice.dto.request;
 
-import com.pdc.userservice.entities.enums.Position;
+import com.pdc.userservice.entities.Faculty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -15,5 +15,5 @@ public class FacultyUpdateRequest {
     private String password; // Optional for update
 
     @NotNull(message = "Position is required")
-    private Position position;
+    private Faculty.Position position;
 }

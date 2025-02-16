@@ -71,4 +71,11 @@ public interface StudentService {
      * @return true if registration number exists
      */
     boolean existsByRegistrationNo(String registrationNo);
+
+    /**
+     * Checks if student exists by their ID
+     * @param id Student ID
+     * @return true if student exists
+     */
+    boolean existsById(UUID id);
 }

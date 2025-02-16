@@ -1,11 +1,7 @@
 package com.pdc.userservice.entities;
 
-import com.pdc.userservice.entities.enums.Position;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -24,16 +20,25 @@ public class Faculty extends BaseEntity {
     @Column(name = "school_id", nullable = false)
     private UUID schoolId;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "password", nullable = false)
     private String password;
-
-    @Column(nullable = false)
-    private String name;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "position", nullable = false, columnDefinition = "faculty_position")
     private Position position;
+
+    @Getter
+    public enum Position {
+        PROFESSOR,
+        ASSOCIATE_PROFESSOR,
+        ASSISTANT_PROFESSOR,
+        ADDITIONAL_PROFESSOR,
+        PROFESSOR_OF_PRACTICE
+    }
 }

@@ -137,4 +137,9 @@ public class StudentServiceImpl implements StudentService {
     public boolean existsByRegistrationNo(String registrationNo) {
         return studentRepository.existsByRegistrationNo(registrationNo);
     }
+
+    @Override
+    public boolean existsById(UUID id) {
+        return studentRepository.existsById(id);
+    }
 }

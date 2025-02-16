@@ -14,18 +14,16 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
-public class Enrollment {
-
+public class Enrollment extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "enrollment_id")
     private UUID enrollmentId;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
     @Column(name = "student_id", nullable = false)
     private UUID studentId;
-
-
 }

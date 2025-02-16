@@ -38,15 +38,13 @@ public class Course extends BaseEntity {
     @Column(name = "academic_year", nullable = false)
     private Integer academicYear;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private CourseStatus status;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "specialization_id", nullable = false)
     private Specialization specialization;
 
-
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, columnDefinition = "course_status")
+    private CourseStatus status;
 
     public enum CourseStatus {
         ACTIVE, INACTIVE

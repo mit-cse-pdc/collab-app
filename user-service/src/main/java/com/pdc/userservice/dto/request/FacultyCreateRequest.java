@@ -1,8 +1,12 @@
 package com.pdc.userservice.dto.request;
 
-import com.pdc.userservice.entities.enums.Position;
-import jakarta.validation.constraints.*;
+import com.pdc.userservice.entities.Faculty;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
+
 import java.util.UUID;
 
 @Data
@@ -22,5 +26,5 @@ public class FacultyCreateRequest {
     private String name;
 
     @NotNull(message = "Position is required")
-    private Position position;
+    private Faculty.Position position;
 }

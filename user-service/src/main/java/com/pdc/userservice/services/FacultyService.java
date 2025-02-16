@@ -57,4 +57,11 @@ public interface FacultyService {
      * @return true if email exists
      */
     boolean existsByEmail(String email);
+
+    /**
+     * Checks if faculty exists by ID
+     * @param id Faculty ID
+     * @return true if faculty exists
+     */
+    boolean existsById(UUID id);
 }

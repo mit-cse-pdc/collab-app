@@ -119,4 +119,12 @@ public class StudentController {
             @Parameter(description = "Registration number to check", required = true) @PathVariable @ValidRegistrationNumber String registrationNo) {
         return ResponseEntity.ok(studentService.existsByRegistrationNo(registrationNo));
     }
+
+    @Operation(summary = "Check if student exists",
+            description = "Checks if a student exists with the given ID")
+    @GetMapping("/exists/{id}")
+    public ResponseEntity<Boolean> checkStudentExists(
+            @Parameter(description = "Student ID to check", required = true) @PathVariable UUID id) {
+        return ResponseEntity.ok(studentService.existsById(id));
+    }
 }
