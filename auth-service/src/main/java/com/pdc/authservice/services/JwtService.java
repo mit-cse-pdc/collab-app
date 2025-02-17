@@ -113,6 +113,17 @@ public class JwtService {
                 .getBody();
     }
 
+    public long getTokenRemainingValidityInMillis(String token) {
+        try {
+            Claims claims = extractAllClaims(token, accessKey);
+            Date expiration = claims.getExpiration();
+            return expiration.getTime() - System.currentTimeMillis();
+        } catch (Exception e) {
+            log.error("Error getting token remaining validity: {}", e.getMessage());
+            return 0;
+        }
+    }
+
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver, Key key) {
         final Claims claims = extractAllClaims(token, key);
         return claimsResolver.apply(claims);

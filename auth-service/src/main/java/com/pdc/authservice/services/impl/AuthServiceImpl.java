@@ -13,7 +13,7 @@ import com.pdc.authservice.exceptions.ResourceNotFoundException;
 import com.pdc.authservice.services.AuthService;
 import com.pdc.authservice.services.JwtService;
 import com.pdc.authservice.services.RefreshTokenService;
-import io.jsonwebtoken.Claims;
+import com.pdc.authservice.services.TokenBlacklistService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +32,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     @Transactional
@@ -106,8 +107,6 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public Boolean logout(String token) {
-        log.debug("Processing logout request with token: {}", token);
-
         if (token == null || !token.startsWith("Bearer ")) {
             throw new InvalidTokenException("Invalid token format");
         }
@@ -115,22 +114,23 @@ public class AuthServiceImpl implements AuthService {
         try {
             String accessToken = token.substring(7);
 
-            // Extract userId from the token without validation
-            Claims claims = jwtService.extractAllClaims(accessToken, jwtService.getAccessKey());
-            String userId = claims.getSubject();
+            // Validate the token first
+            String userId = jwtService.validateAccessToken(accessToken);
 
-            if (userId == null) {
-                throw new InvalidTokenException("Invalid token: no user ID found");
-            }
+            // Calculate remaining validity time
+            long remainingValidityTime = jwtService.getTokenRemainingValidityInMillis(accessToken);
 
-            // Revoke all refresh tokens for the user
+            // Blacklist the access token
+            tokenBlacklistService.blacklistToken(accessToken, remainingValidityTime);
+
+            // Revoke all refresh tokens
             refreshTokenService.revokeAllUserTokens(UUID.fromString(userId));
 
             log.info("Logout successful for user: {}", userId);
             return true;
         } catch (Exception e) {
-            log.error("Error during logout: {}", e.getMessage());
-            throw new InvalidTokenException("Invalid token");
+            log.error("Error during logout", e);
+            throw new InvalidTokenException("Invalid access token");
         }
     }
 

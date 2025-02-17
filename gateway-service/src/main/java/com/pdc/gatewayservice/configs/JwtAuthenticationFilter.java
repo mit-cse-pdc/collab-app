@@ -1,11 +1,15 @@
 package com.pdc.gatewayservice.configs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pdc.gatewayservice.exceptions.JwtTokenExpiredException;
 import com.pdc.gatewayservice.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -13,15 +17,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-/**
- * Gateway filter for JWT authentication
- * Validates JWT tokens and adds user information to request headers
- * Excludes configured public paths from authentication
- */
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
 @Slf4j
 @Component
 public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAuthenticationFilter.Config> {
-
     private static final String BEARER_PREFIX = "Bearer ";
     private static final String USER_ID_HEADER = "X-User-Id";
     private static final String ROLE_HEADER = "X-User-Role";
@@ -39,47 +41,70 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
+            String path = request.getURI().getPath();
 
-            // Skip JWT verification for public paths
-            if (isPublicPath(request)) {
-                log.debug("Accessing public path: {}", request.getURI().getPath());
+            if (isPublicPath(path)) {
                 return chain.filter(exchange);
-            }
-
-            // Check for Authorization header
-            if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
-                return handleError(exchange, HttpStatus.UNAUTHORIZED, "Missing authorization header");
             }
 
             String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
             if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
-                return handleError(exchange, HttpStatus.UNAUTHORIZED, "Invalid authorization header");
+                return handleError(exchange, HttpStatus.UNAUTHORIZED, "Missing or invalid authorization header");
             }
 
             String token = authHeader.substring(BEARER_PREFIX.length());
+            try {
+                if (!jwtUtil.validateToken(token)) {
+                    return handleError(exchange, HttpStatus.UNAUTHORIZED, "Token is expired or invalid");
+                }
 
-            if (!jwtUtil.validateToken(token)) {
-                return handleError(exchange, HttpStatus.UNAUTHORIZED, "Invalid JWT token");
+                Claims claims = jwtUtil.extractClaims(token);
+                ServerHttpRequest modifiedRequest = request.mutate()
+                        .header(USER_ID_HEADER, jwtUtil.extractUserId(claims))
+                        .header(ROLE_HEADER, jwtUtil.extractRole(claims))
+                        .build();
+
+                return chain.filter(exchange.mutate().request(modifiedRequest).build());
+            } catch (JwtTokenExpiredException e) {
+                return handleError(exchange, HttpStatus.UNAUTHORIZED, "Token has expired");
+            } catch (Exception e) {
+                log.error("JWT validation error: {}", e.getMessage());
+                return handleError(exchange, HttpStatus.UNAUTHORIZED, "Invalid token");
             }
-
-            // Extract claims and modify request
-            Claims claims = jwtUtil.extractClaims(token);
-            ServerHttpRequest modifiedRequest = request.mutate()
-                    .header(USER_ID_HEADER, jwtUtil.extractUserId(claims))
-                    .header(ROLE_HEADER, jwtUtil.extractRole(claims))
-                    .build();
-
-            return chain.filter(exchange.mutate().request(modifiedRequest).build());
         };
     }
 
-    private boolean isPublicPath(ServerHttpRequest request) {
-        String path = request.getURI().getPath();
-        return publicPathsConfig
-                .getPublicPaths()
-                .stream()
+    private Mono<Void> handleError(ServerWebExchange exchange, HttpStatus status, String message) {
+        log.error("Authentication error: {}", message);
+        exchange.getResponse().setStatusCode(status);
+
+        // Create error response
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now().toString());
+        errorResponse.put("status", status.value());
+        errorResponse.put("error", status.getReasonPhrase());
+        errorResponse.put("message", message);
+        errorResponse.put("path", exchange.getRequest().getPath().value());
+
+        byte[] bytes = null;
+        try {
+            bytes = new ObjectMapper().writeValueAsBytes(errorResponse);
+        } catch (Exception e) {
+            log.error("Error creating error response", e);
+        }
+
+        if (bytes != null) {
+            DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(bytes);
+            exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+            return exchange.getResponse().writeWith(Mono.just(buffer));
+        }
+
+        return exchange.getResponse().setComplete();
+    }
+
+    private boolean isPublicPath(String path) {
+        return publicPathsConfig.getPublicPaths().stream()
                 .anyMatch(publicPath -> {
-                    // Handle both exact matches and wildcard patterns
                     if (publicPath.endsWith("/**")) {
                         String prefix = publicPath.substring(0, publicPath.length() - 3);
                         return path.startsWith(prefix);
@@ -88,14 +113,13 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
                 });
     }
 
-    private Mono<Void> handleError(ServerWebExchange exchange, HttpStatus status, String message) {
-        log.error("Authentication error: {}", message);
-        exchange.getResponse().setStatusCode(status);
+    private Mono<Void> handleUnauthorized(ServerWebExchange exchange, String message) {
+        log.error("Unauthorized request: {}", message);
+        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
         return exchange.getResponse().setComplete();
     }
 
     @Data
     public static class Config {
-        // Configuration properties if needed
     }
 }

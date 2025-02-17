@@ -1,61 +1,59 @@
-# Application Properties
-server:
-  port: 8080
-
 spring:
   application:
     name: gateway-service
   cloud:
     gateway:
-      #      discovery:
-      #        locator:
-      #          enabled: true
-      #      default-filters:
-      #        - DedupeResponseHeader=Access-Control-Allow-Origin
-      #      globalcors:
-      #        cors-configurations:
-      #          '[/**]':
-      #            allowedOrigins: "*"
-      #            allowedMethods: "*"
-      #            allowedHeaders: "*"
       routes:
-        - id: "user-service"
-          uri: lb://USER-SERVICE
-          predicates:
-            - Path=/api/v1/faculty/**, /api/v1/students/**
-
-        - id: "college-management-service"
-          uri: lb://COLLEGE-MANAGEMENT-SERVICE
-          predicates:
-            - Path=/api/v1/schools/**
-
-        - id: "auth-service"
+        - id: auth-service
           uri: lb://AUTH-SERVICE
           predicates:
             - Path=/api/v1/auth/**
+          filters:
+            - StripPrefix=0
 
-# Service URLs
-#services:
-#  college-management:
-#    url: http://localhost:8082
-#  auth:
-#    url: http://localhost:8081
-#  user:
-#    url: http://localhost:8083
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/v1/faculty/**, /api/v1/students/**
+          filters:
+            - StripPrefix=0
+            - name: JwtAuthenticationFilter  # Changed from JwtAuthentication to JwtAuthenticationFilter
 
-# Gateway Security Configuration
+        - id: college-management-service
+          uri: lb://COLLEGE-MANAGEMENT-SERVICE
+          predicates:
+            - Path=/api/v1/schools/**
+          filters:
+            - StripPrefix=0
+            - name: JwtAuthenticationFilter  # Changed from JwtAuthentication to JwtAuthenticationFilter
+
+  cache:
+    type: redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: redis-password
+      timeout: 2000
+      database: 0
+
 gateway:
   security:
     publicPaths:
-      - "/departments/**"
-      - "/semesters/**"
-      - "/auth/login"
-      - "/auth/register"
-      - "/auth/verify/**"
-      - "/auth/reset-password/**"
-      - "/faculty/**"
+      - "/api/v1/auth/faculty/login"
+      - "/api/v1/auth/student/login"
+      - "/api/v1/auth/refresh"
+      - "/api/v1/auth/logout"
+      - "/v3/api-docs/**"
+      - "/swagger-ui/**"
+      - "/swagger-ui.html"
 
-# Eureka Configuration
+jwt:
+  access:
+    secret: 6c2a10b8024b262c0b0b6c03bbb61b316a182f136ad6f9ab54e6ef3e98508c53ab48883d0db4c32a248082001af3714586f4bc895fe3b7ffffbd5dc9e56077c20154dc9e632fdb3de11aadad081c0048a7b9b4e3d1c387c75e633226e05146fb07932eecd02743d95f94473173d6b9090238b17baec5759f84e00e68f81c00605a6cc8afdfb1ab1b7be024f19215f6999d635d09269be6c09c8d1dbb3406f2a8954faba99850e93598a6d5f62236e8ffb60aef4c469f9233ee8b23c1ef32d6300c481c4b1940bc02b66c963eb097d57b052df36a5b878088b13fe1b999e7c29282f3adc0f867a5d5689ec16248bf74393776b9dbf8ed4a0ffd7cc3d01250f500
+  refresh:
+    secret: ${JWT_REFRESH_SECRET:dGhpc2lzYXZlcnlsb25nc2VjcmV0a2V5Zm9yand0cmVmcmVzaHRva2VuZ2VuZXJhdGlvbg==}
+
 eureka:
   client:
     serviceUrl:
@@ -66,13 +64,7 @@ eureka:
     prefer-ip-address: true
     hostname: localhost
 
-# JWT Configuration
-jwt:
-  secret: vuiwhfiodcrowdancioldwbfncio3901uwqeid2ceniodlf
-
-# Logging Configuration
 logging:
   level:
-    com.college.gateway: DEBUG
+    com.pdc.gatewayservice: DEBUG
     org.springframework.cloud.gateway: DEBUG
-    org.springframework.security: INFO
