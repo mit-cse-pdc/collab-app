@@ -1,3 +1,6 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: gateway-service
@@ -17,15 +20,15 @@ spring:
             - Path=/api/v1/faculty/**, /api/v1/students/**
           filters:
             - StripPrefix=0
-            - name: JwtAuthenticationFilter  # Changed from JwtAuthentication to JwtAuthenticationFilter
+            - name: JwtAuthenticationFilter
 
-        - id: college-management-service
-          uri: lb://COLLEGE-MANAGEMENT-SERVICE
+        - id: master-data-service
+          uri: lb://MASTER-DATA-SERVICE
           predicates:
-            - Path=/api/v1/schools/**
+            - Path=/api/v1/schools/**, /api/v1/specializations/**, /api/v1/courses/**, /api/v1/enrollments/**, /api/v1/faculty-courses/**
           filters:
             - StripPrefix=0
-            - name: JwtAuthenticationFilter  # Changed from JwtAuthentication to JwtAuthenticationFilter
+            - name: JwtAuthenticationFilter
 
   cache:
     type: redis
