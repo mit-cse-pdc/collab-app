@@ -15,7 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
-public class Question {
+public class Question extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID questionId;
@@ -23,12 +23,9 @@ public class Question {
     @Column(name = "faculty_id", nullable = false)
     private UUID facultyId;
 
-    @JoinColumn(name = "chapter_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chapter_id", nullable = false)
     private Chapter chapter;
-
-    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<Answer> answers;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -40,8 +37,10 @@ public class Question {
     @Column(name = "question_type", nullable = false)
     private QuestionType questionType;
 
+    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
+    private List<Answer> answers;
+
     public enum QuestionType {
-        SINGLE_CHOICE,
         MULTIPLE_CHOICE,
         TRUE_FALSE,
         SHORT_ANSWER

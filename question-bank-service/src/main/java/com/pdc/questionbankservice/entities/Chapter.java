@@ -11,14 +11,14 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "chapters")
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 public class Chapter extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String chapterId;
+    private UUID chapterId;
 
     @Column(name = "course_id", nullable = false)
     private UUID courseId;

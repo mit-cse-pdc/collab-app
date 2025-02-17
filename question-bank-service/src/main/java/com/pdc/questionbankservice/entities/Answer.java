@@ -10,8 +10,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "answers")
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 public class Answer extends BaseEntity {
@@ -19,8 +19,8 @@ public class Answer extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID answerId;
 
-    @JoinColumn(name = "question_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "question_id", nullable = false)
     private Question question;
 
     @Column(name = "text", nullable = false)
