@@ -1,0 +1,82 @@
+package com.pdc.questionbankservice.controllers;
+
+import com.pdc.questionbankservice.dto.request.CreateAnswerRequest;
+import com.pdc.questionbankservice.dto.response.AnswerResponse;
+import com.pdc.questionbankservice.services.AnswerService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/v1/answers")
+@RequiredArgsConstructor
+@Tag(name = "Answer Controller", description = "Endpoints for managing answers")
+public class AnswerController {
+
+    private final AnswerService answerService;
+
+    @PostMapping("/{questionId}")
+    @Operation(summary = "Create an answer for a question")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Answer created successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = AnswerResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "404", description = "Question not found")
+    })
+    public ResponseEntity<AnswerResponse> createAnswer(@PathVariable UUID questionId, @RequestBody CreateAnswerRequest request) {
+        AnswerResponse response = answerService.createAnswer(request, questionId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{questionId}")
+    @Operation(summary = "Get all answers for a question")
+    @ApiResponse(responseCode = "200", description = "Answers retrieved successfully",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = AnswerResponse.class)))
+    public ResponseEntity<List<AnswerResponse>> getAllAnswersForQuestion(@PathVariable UUID questionId) {
+        List<AnswerResponse> responses = answerService.getAllAnswersForQuestion(questionId);
+        return ResponseEntity.ok(responses);
+    }
+
+    @PutMapping("/{answerId}")
+    @Operation(summary = "Update an answer")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Answer updated successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = AnswerResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "404", description = "Answer not found")
+    })
+    public ResponseEntity<AnswerResponse> updateAnswer(@PathVariable UUID answerId, @RequestBody CreateAnswerRequest request) {
+        AnswerResponse response = answerService.updateAnswer(answerId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{answerId}")
+    @Operation(summary = "Delete an answer")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Answer deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Answer not found")
+    })
+    public ResponseEntity<Void> deleteAnswer(@PathVariable UUID answerId) {
+        answerService.deleteAnswer(answerId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{answerId}")
+    @Operation(summary = "Get an answer by ID")
+    @ApiResponse(responseCode = "200", description = "Answer retrieved successfully",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = AnswerResponse.class)))
+    public ResponseEntity<AnswerResponse> getAnswer(@PathVariable UUID answerId) {
+        AnswerResponse response = answerService.getAnswer(answerId);
+        return ResponseEntity.ok(response);
+    }
+}
