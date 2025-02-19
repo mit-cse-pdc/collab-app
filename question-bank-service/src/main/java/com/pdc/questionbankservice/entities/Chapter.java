@@ -1,11 +1,9 @@
 package com.pdc.questionbankservice.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,6 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
+@ToString(exclude = "questions")
 public class Chapter extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -23,8 +22,8 @@ public class Chapter extends BaseEntity {
     @Column(name = "course_id", nullable = false)
     private UUID courseId;
 
-    @OneToMany(mappedBy = "chapter", fetch = FetchType.LAZY)
-    private List<Question> questions;
+    @OneToMany(mappedBy = "chapter", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Question> questions = new ArrayList<>();
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -35,3 +34,4 @@ public class Chapter extends BaseEntity {
     @Column(name = "chapter_no", nullable = false)
     private Integer chapterNo;
 }
+
