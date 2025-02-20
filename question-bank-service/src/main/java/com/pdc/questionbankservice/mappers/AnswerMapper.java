@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Component
 public class AnswerMapper {
@@ -28,6 +29,13 @@ public class AnswerMapper {
 
     public AnswerResponse toResponse(Answer answer) {
         return modelMapper.map(answer, AnswerResponse.class);
+    }
+
+    public List<AnswerResponse> toResponseList(List<Answer> answers) {
+        return answers
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     public void updateEntity(CreateAnswerRequest request, Answer answer) {
