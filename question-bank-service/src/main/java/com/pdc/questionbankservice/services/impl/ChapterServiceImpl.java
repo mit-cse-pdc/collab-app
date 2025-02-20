@@ -43,8 +43,7 @@ public class ChapterServiceImpl implements ChapterService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = {CHAPTER_LIST_CACHE, CHAPTER_CACHE, CHAPTER_STATS_CACHE},
-            key = "#result.courseId")
+    @CacheEvict(cacheNames = {CHAPTER_LIST_CACHE, CHAPTER_CACHE, CHAPTER_STATS_CACHE}, key = "#result.courseId")
     public ChapterResponse createChapter(CreateChapterRequest request) {
         log.debug("Creating new chapter for course ID: {}", request.getCourseId());
         validateCourseExists(request.getCourseId());
@@ -52,15 +51,12 @@ public class ChapterServiceImpl implements ChapterService {
         Chapter chapter = chapterMapper.toEntity(request);
         Chapter savedChapter = chapterRepository.save(chapter);
 
-        log.info("Created chapter with ID: {} for course: {}",
-                savedChapter.getChapterId(), savedChapter.getCourseId());
+        log.info("Created chapter with ID: {} for course: {}", savedChapter.getChapterId(), savedChapter.getCourseId());
         return chapterMapper.toResponse(savedChapter);
     }
 
     @Override
-    @Cacheable(cacheNames = CHAPTER_LIST_CACHE,
-            key = "#courseId",
-            unless = "#result.chapters.isEmpty()")
+    @Cacheable(cacheNames = CHAPTER_LIST_CACHE, key = "#courseId", unless = "#result.chapters.isEmpty()")
     public ChapterListResponse getAllChaptersByCourseId(UUID courseId) {
         log.debug("Fetching all chapters for course ID: {}", courseId);
         validateCourseExists(courseId);
@@ -77,9 +73,7 @@ public class ChapterServiceImpl implements ChapterService {
     }
 
     @Override
-    @Cacheable(cacheNames = CHAPTER_CACHE,
-            key = "#chapterId",
-            unless = "#result == null")
+    @Cacheable(cacheNames = CHAPTER_CACHE, key = "#chapterId", unless = "#result == null")
     public ChapterResponse getChapter(UUID chapterId) {
         log.debug("Fetching chapter with ID: {}", chapterId);
         Chapter chapter = findChapterOrThrowException(chapterId);
@@ -88,8 +82,7 @@ public class ChapterServiceImpl implements ChapterService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = {CHAPTER_LIST_CACHE, CHAPTER_CACHE, CHAPTER_STATS_CACHE},
-            allEntries = true)
+    @CacheEvict(cacheNames = {CHAPTER_LIST_CACHE, CHAPTER_CACHE, CHAPTER_STATS_CACHE}, allEntries = true)
     public ChapterResponse updateChapter(UUID chapterId, UpdateChapterRequest request) {
         log.debug("Updating chapter with ID: {}", chapterId);
         Chapter chapter = findChapterOrThrowException(chapterId);
@@ -103,11 +96,9 @@ public class ChapterServiceImpl implements ChapterService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = {CHAPTER_LIST_CACHE, CHAPTER_CACHE, CHAPTER_STATS_CACHE},
-            allEntries = true)
+    @CacheEvict(cacheNames = {CHAPTER_LIST_CACHE, CHAPTER_CACHE, CHAPTER_STATS_CACHE}, allEntries = true)
     public ChapterResponse updateChapterOrder(UpdateChapterOrderRequest request) {
-        log.debug("Updating order for chapter ID: {} to position: {}",
-                request.getChapterId(), request.getNewChapterNo());
+        log.debug("Updating order for chapter ID: {} to position: {}", request.getChapterId(), request.getNewChapterNo());
 
         Chapter chapter = findChapterOrThrowException(request.getChapterId());
         chapter.setChapterNo(request.getNewChapterNo());
@@ -119,8 +110,7 @@ public class ChapterServiceImpl implements ChapterService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = {CHAPTER_LIST_CACHE, CHAPTER_CACHE, CHAPTER_STATS_CACHE},
-            allEntries = true)
+    @CacheEvict(cacheNames = {CHAPTER_LIST_CACHE, CHAPTER_CACHE, CHAPTER_STATS_CACHE}, allEntries = true)
     public void deleteChapter(UUID chapterId) {
         log.debug("Deleting chapter with ID: {}", chapterId);
         Chapter chapter = findChapterOrThrowException(chapterId);
@@ -129,9 +119,7 @@ public class ChapterServiceImpl implements ChapterService {
     }
 
     @Override
-    @Cacheable(cacheNames = CHAPTER_STATS_CACHE,
-            key = "#chapterId",
-            unless = "#result == null")
+    @Cacheable(cacheNames = CHAPTER_STATS_CACHE, key = "#chapterId", unless = "#result == null")
     public ChapterStatsResponse getChapterStats(UUID chapterId) {
         log.debug("Fetching stats for chapter ID: {}", chapterId);
         Chapter chapter = findChapterOrThrowException(chapterId);
@@ -149,6 +137,18 @@ public class ChapterServiceImpl implements ChapterService {
                 .build();
     }
 
+    @Override
+    public boolean checkChapterExists(UUID courseId, Integer chapterNo) {
+        validateCourseExists(courseId);
+        return chapterRepository.existsByCourseIdAndChapterNo(courseId, chapterNo);
+    }
+
+    @Override
+    public boolean checkChapterNameExists(UUID courseId, String name) {
+        validateCourseExists(courseId);
+        return chapterRepository.existsByCourseIdAndNameIgnoreCase(courseId, name);
+    }
+
     private Map<Question.QuestionType, Integer> calculateQuestionStats(List<Question> questions) {
         return questions.stream()
                 .collect(Collectors.groupingBy(
@@ -161,18 +161,6 @@ public class ChapterServiceImpl implements ChapterService {
         if (!courseClient.courseExistsById(courseId)) {
             throw new ResourceNotFoundException(Messages.COURSE_NOT_FOUND + courseId);
         }
-    }
-
-    @Override
-    public boolean checkChapterExists(UUID courseId, Integer chapterNo) {
-        validateCourseExists(courseId);
-        return chapterRepository.existsByCourseIdAndChapterNo(courseId, chapterNo);
-    }
-
-    @Override
-    public boolean checkChapterNameExists(UUID courseId, String name) {
-        validateCourseExists(courseId);
-        return chapterRepository.existsByCourseIdAndNameIgnoreCase(courseId, name);
     }
 
     private Chapter findChapterOrThrowException(UUID chapterId) {
