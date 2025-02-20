@@ -172,9 +172,31 @@ CREATE TABLE refresh_tokens
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Function to delete expired refresh tokens
+CREATE OR REPLACE FUNCTION cleanup_expired_refresh_tokens()
+    RETURNS TRIGGER AS $$
+BEGIN
+    -- Delete tokens that have expired
+    DELETE FROM refresh_tokens
+    WHERE expires_at < CURRENT_TIMESTAMP
+       OR revoked = true;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger that runs periodically
+CREATE OR REPLACE TRIGGER trigger_cleanup_expired_refresh_tokens
+    AFTER INSERT OR UPDATE ON refresh_tokens
+    FOR EACH STATEMENT
+EXECUTE FUNCTION cleanup_expired_refresh_tokens();
+
+
 -- Create indexes for frequently queried columns and foreign keys
 CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens (user_id);
 CREATE INDEX idx_refresh_tokens_token ON refresh_tokens (token);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_revoked ON refresh_tokens(revoked);
 CREATE INDEX idx_students_registration_no ON students (registration_no);
 CREATE INDEX idx_courses_course_code ON courses (course_code);
 CREATE INDEX idx_specializations_school_id ON specializations (school_id);

@@ -2,6 +2,7 @@ package com.pdc.userservice.controllers;
 
 import com.pdc.userservice.dto.request.FacultyCreateRequest;
 import com.pdc.userservice.dto.request.FacultyUpdateRequest;
+import com.pdc.userservice.dto.response.AuthFacultyResponse;
 import com.pdc.userservice.dto.response.ErrorResponse;
 import com.pdc.userservice.dto.response.FacultyResponse;
 import com.pdc.userservice.services.FacultyService;
@@ -105,5 +106,11 @@ public class FacultyController {
     ) {
         Boolean exists = facultyService.existsById(id);
         return ResponseEntity.ok(exists);
+    }
+
+    @GetMapping("/auth-faculty/{email}")
+    public ResponseEntity<AuthFacultyResponse> getAuthFacultyByEmail(@PathVariable String email){
+        AuthFacultyResponse response = facultyService.getAuthFacultyByEmail(email);
+        return ResponseEntity.ok(response);
     }
 }

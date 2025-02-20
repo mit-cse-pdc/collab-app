@@ -1,7 +1,11 @@
 package com.pdc.questionbankservice.services.impl;
 
-import com.pdc.questionbankservice.dto.request.*;
-import com.pdc.questionbankservice.dto.response.*;
+import com.pdc.questionbankservice.dto.request.CreateChapterRequest;
+import com.pdc.questionbankservice.dto.request.UpdateChapterOrderRequest;
+import com.pdc.questionbankservice.dto.request.UpdateChapterRequest;
+import com.pdc.questionbankservice.dto.response.ChapterListResponse;
+import com.pdc.questionbankservice.dto.response.ChapterResponse;
+import com.pdc.questionbankservice.dto.response.ChapterStatsResponse;
 import com.pdc.questionbankservice.entities.Chapter;
 import com.pdc.questionbankservice.entities.Question;
 import com.pdc.questionbankservice.exceptions.ResourceNotFoundException;
@@ -10,6 +14,8 @@ import com.pdc.questionbankservice.repositories.ChapterRepository;
 import com.pdc.questionbankservice.repositories.QuestionRepository;
 import com.pdc.questionbankservice.services.ChapterService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +34,7 @@ public class ChapterServiceImpl implements ChapterService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = {"chapterList", "chapter", "chapterStats"}, allEntries = true)
     public ChapterResponse createChapter(CreateChapterRequest request) {
         if (checkChapterExists(request.getCourseId(), request.getChapterNo())) {
             throw new IllegalArgumentException("Chapter number already exists for this course.");
@@ -42,6 +49,7 @@ public class ChapterServiceImpl implements ChapterService {
     }
 
     @Override
+    @Cacheable(cacheNames = "chapterList", key = "#courseId")
     public ChapterListResponse getAllChaptersByCourseId(UUID courseId) {
         List<Chapter> chapters = chapterRepository.findByCourseIdOrderByChapterNo(courseId);
         List<ChapterResponse> chapterResponses = chapters.stream().map(chapterMapper::toResponse).collect(Collectors.toList());
@@ -52,6 +60,7 @@ public class ChapterServiceImpl implements ChapterService {
     }
 
     @Override
+    @Cacheable(cacheNames = "chapter", key = "#chapterId")
     public ChapterResponse getChapter(UUID chapterId) {
         Chapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new ResourceNotFoundException("Chapter not found with ID: " + chapterId));
@@ -60,6 +69,7 @@ public class ChapterServiceImpl implements ChapterService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = {"chapterList", "chapter", "chapterStats"}, allEntries = true)
     public ChapterResponse updateChapter(UUID chapterId, UpdateChapterRequest request) {
         Chapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new ResourceNotFoundException("Chapter not found with ID: " + chapterId));
@@ -76,6 +86,7 @@ public class ChapterServiceImpl implements ChapterService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = {"chapterList", "chapter", "chapterStats"}, allEntries = true)
     public ChapterResponse updateChapterOrder(UpdateChapterOrderRequest request) {
         Chapter chapter = chapterRepository.findById(request.getChapterId())
                 .orElseThrow(() -> new ResourceNotFoundException("Chapter not found with ID: " + request.getChapterId()));
@@ -93,6 +104,7 @@ public class ChapterServiceImpl implements ChapterService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = {"chapterList", "chapter", "chapterStats"}, allEntries = true)
     public void deleteChapter(UUID chapterId) {
         if (!chapterRepository.existsById(chapterId)) {
             throw new ResourceNotFoundException("Chapter not found with ID: " + chapterId);
@@ -111,6 +123,7 @@ public class ChapterServiceImpl implements ChapterService {
     }
 
     @Override
+    @Cacheable(cacheNames = "chapterStats", key = "#chapterId")
     public ChapterStatsResponse getChapterStats(UUID chapterId) {
         Chapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new ResourceNotFoundException("Chapter not found with ID: " + chapterId));

@@ -38,7 +38,7 @@ public class Course extends BaseEntity {
     @Column(name = "academic_year", nullable = false)
     private Integer academicYear;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "specialization_id", nullable = false)
     private Specialization specialization;
 

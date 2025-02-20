@@ -5,12 +5,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.UUID;
 
 @Schema(description = "Question Search Request")
 @Data
 @Builder
-public class QuestionSearchRequest {
+public class QuestionSearchRequest implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Schema(description = "Chapter ID filter", example = "123e4567-e89b-12d3-a456-426614174000")
     private UUID chapterId;
 

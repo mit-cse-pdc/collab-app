@@ -6,6 +6,7 @@ import com.pdc.masterdataservice.dto.request.UpdateCourseDto;
 import com.pdc.masterdataservice.entities.Course;
 import com.pdc.masterdataservice.entities.Specialization;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class CourseMapper {
 
     private final ModelMapper modelMapper;
@@ -26,6 +28,7 @@ public class CourseMapper {
         Course course = modelMapper.map(dto, Course.class);
         course.setSpecialization(specialization);
         course.setStatus(Course.CourseStatus.ACTIVE);
+        log.info("Course : {}", course);
         return course;
     }
 

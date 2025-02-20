@@ -8,12 +8,17 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.UUID;
 
 @Schema(description = "Create Chapter Request")
 @Data
 @Builder
-public class CreateChapterRequest {
+public class CreateChapterRequest implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Schema(description = "Course ID the chapter belongs to", example = "123e4567-e89b-12d3-a456-426614174000")
     @NotNull(message = "Course ID is required")
     private UUID courseId;

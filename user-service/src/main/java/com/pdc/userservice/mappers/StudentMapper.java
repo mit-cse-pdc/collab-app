@@ -2,6 +2,7 @@ package com.pdc.userservice.mappers;
 
 import com.pdc.userservice.dto.request.StudentCreateRequest;
 import com.pdc.userservice.dto.request.StudentUpdateRequest;
+import com.pdc.userservice.dto.response.AuthStudentResponse;
 import com.pdc.userservice.dto.response.StudentResponse;
 import com.pdc.userservice.entities.Student;
 import lombok.RequiredArgsConstructor;
@@ -23,5 +24,9 @@ public class StudentMapper {
 
     public void updateEntity(StudentUpdateRequest request, Student student) {
         modelMapper.map(request, student);
+    }
+
+    public AuthStudentResponse toAuthResponse(Student student) {
+        return modelMapper.map(student, AuthStudentResponse.class);
     }
 }

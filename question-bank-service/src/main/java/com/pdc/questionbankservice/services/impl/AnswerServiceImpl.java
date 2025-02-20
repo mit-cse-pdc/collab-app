@@ -10,12 +10,13 @@ import com.pdc.questionbankservice.repositories.AnswerRepository;
 import com.pdc.questionbankservice.repositories.QuestionRepository;
 import com.pdc.questionbankservice.services.AnswerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +28,7 @@ public class AnswerServiceImpl implements AnswerService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = {"answer", "answerList"}, allEntries = true)
     public AnswerResponse createAnswer(CreateAnswerRequest request, UUID questionId) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Question not found with ID: " + questionId));
@@ -38,15 +40,18 @@ public class AnswerServiceImpl implements AnswerService {
     }
 
     @Override
+    @Cacheable(cacheNames = "answerList", key = "#questionId")
     public List<AnswerResponse> getAllAnswersForQuestion(UUID questionId) {
         List<Answer> answers = answerRepository.findByQuestion_QuestionId(questionId);
-        return answers.stream()
+        return answers
+                .stream()
                 .map(answerMapper::toResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = {"answer", "answerList"}, allEntries = true)
     public AnswerResponse updateAnswer(UUID answerId, CreateAnswerRequest request) {
         Answer answer = answerRepository.findById(answerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Answer not found with ID: " + answerId));
@@ -58,6 +63,7 @@ public class AnswerServiceImpl implements AnswerService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = {"answer", "answerList"}, allEntries = true)
     public void deleteAnswer(UUID answerId) {
         if (answerRepository.existsById(answerId)) {
             answerRepository.deleteById(answerId);
@@ -67,6 +73,7 @@ public class AnswerServiceImpl implements AnswerService {
     }
 
     @Override
+    @Cacheable(cacheNames = "answer", key = "#answerId")
     public AnswerResponse getAnswer(UUID answerId) {
         Answer answer = answerRepository.findById(answerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Answer not found with ID: " + answerId));

@@ -14,7 +14,9 @@ import com.pdc.questionbankservice.mappers.QuestionMapper;
 import com.pdc.questionbankservice.repositories.ChapterRepository;
 import com.pdc.questionbankservice.repositories.QuestionRepository;
 import com.pdc.questionbankservice.services.QuestionService;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -43,6 +45,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuestionRepository questionRepository;
     private final FacultyClient facultyClient;
     private final QuestionMapper questionMapper;
+
 
     @Override
     @Transactional
@@ -92,7 +95,7 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    @Cacheable(value = "questionList", unless = "#result.isEmpty()")
+    @Cacheable(value = "questionList", key = "#root.methodName")
     public QuestionListResponse getAllQuestions() {
         List<Question> questions = questionRepository.findAll();
         return questionMapper.toListResponse(questions);
@@ -145,29 +148,40 @@ public class QuestionServiceImpl implements QuestionService {
     private Specification<Question> buildSearchSpecification(QuestionSearchRequest request) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-
-            if (request.getChapterId() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("chapter").get("chapterId"), request.getChapterId()));
-            }
-
-            if (request.getFacultyId() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("facultyId"), request.getFacultyId()));
-            }
-
-            if (request.getQuestionType() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("questionType"), request.getQuestionType()));
-            }
-
-            if (request.getSearchTerm() != null && !request.getSearchTerm().isEmpty()) {
-                String searchTerm = "%" + request.getSearchTerm().toLowerCase() + "%";
-                predicates.add(criteriaBuilder.or(
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), searchTerm),
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("text")), searchTerm)
-                ));
-            }
-
+            addChapterPredicate(predicates, root, criteriaBuilder, request);
+            addFacultyPredicate(predicates, root, criteriaBuilder, request);
+            addQuestionTypePredicate(predicates, root, criteriaBuilder, request);
+            addSearchTermPredicate(predicates, root, criteriaBuilder, request);
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    private void addChapterPredicate(List<Predicate> predicates, Root<Question> root, CriteriaBuilder criteriaBuilder, QuestionSearchRequest request) {
+        if (request.getChapterId() != null) {
+            predicates.add(criteriaBuilder.equal(root.get("chapter").get("chapterId"), request.getChapterId()));
+        }
+    }
+
+    private void addFacultyPredicate(List<Predicate> predicates, Root<Question> root, CriteriaBuilder criteriaBuilder, QuestionSearchRequest request) {
+        if (request.getFacultyId() != null) {
+            predicates.add(criteriaBuilder.equal(root.get("facultyId"), request.getFacultyId()));
+        }
+    }
+
+    private void addQuestionTypePredicate(List<Predicate> predicates, Root<Question> root, CriteriaBuilder criteriaBuilder, QuestionSearchRequest request) {
+        if (request.getQuestionType() != null) {
+            predicates.add(criteriaBuilder.equal(root.get("questionType"), request.getQuestionType()));
+        }
+    }
+
+    private void addSearchTermPredicate(List<Predicate> predicates, Root<Question> root, CriteriaBuilder criteriaBuilder, QuestionSearchRequest request) {
+        if (request.getSearchTerm() != null && !request.getSearchTerm().isEmpty()) {
+            String searchTerm = "%" + request.getSearchTerm().toLowerCase() + "%";
+            predicates.add(criteriaBuilder.or(
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), searchTerm),
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("text")), searchTerm)
+            ));
+        }
     }
 
     @Override
@@ -214,9 +228,17 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     private void validateFacultyAndChapter(UUID facultyId, UUID chapterId) {
+        validateFaculty(facultyId);
+        validateChapter(chapterId);
+    }
+
+    private void validateFaculty(UUID facultyId) {
         if (!facultyClient.facultyExistsById(facultyId)) {
             throw new ResourceNotFoundException(String.format(FACULTY_NOT_FOUND, facultyId));
         }
+    }
+
+    private void validateChapter(UUID chapterId) {
         if (!chapterRepository.existsById(chapterId)) {
             throw new ResourceNotFoundException(String.format(CHAPTER_NOT_FOUND, chapterId));
         }

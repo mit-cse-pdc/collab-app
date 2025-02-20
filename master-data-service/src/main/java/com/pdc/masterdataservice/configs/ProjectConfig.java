@@ -28,9 +28,11 @@ public class ProjectConfig {
                 .setPropertyCondition(context -> context.getSource() != null);
 
         // Configure Course mapping
-        modelMapper.createTypeMap(Course.class, CourseDto.class)
-                .addMapping(Course::getCourseId, CourseDto::setCourseId)
-                .addMapping(Course::getName, CourseDto::setName);
+        modelMapper.typeMap(Course.class, CourseDto.class)
+                .addMappings(mapper ->
+                        mapper.map(src -> src.getSpecialization().getSpecializationId(),
+                                CourseDto::setSpecializationId)
+                );
 
         // Configure FacultyCourse mapping
         modelMapper.typeMap(FacultyCourse.class, FacultyCourseDto.class)

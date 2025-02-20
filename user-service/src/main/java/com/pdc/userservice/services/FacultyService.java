@@ -2,6 +2,7 @@ package com.pdc.userservice.services;
 
 import com.pdc.userservice.dto.request.FacultyCreateRequest;
 import com.pdc.userservice.dto.request.FacultyUpdateRequest;
+import com.pdc.userservice.dto.response.AuthFacultyResponse;
 import com.pdc.userservice.dto.response.FacultyResponse;
 import jakarta.persistence.EntityNotFoundException;
 
@@ -44,6 +45,8 @@ public interface FacultyService {
      * @throws EntityNotFoundException if faculty not found
      */
     FacultyResponse updateFaculty(UUID id, FacultyUpdateRequest request);
+
+    AuthFacultyResponse getAuthFacultyByEmail(String email);
 
     /**
      * Deletes a faculty member by their ID

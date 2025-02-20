@@ -2,6 +2,7 @@ package com.pdc.userservice.controllers;
 
 import com.pdc.userservice.dto.request.StudentCreateRequest;
 import com.pdc.userservice.dto.request.StudentUpdateRequest;
+import com.pdc.userservice.dto.response.AuthStudentResponse;
 import com.pdc.userservice.dto.response.ErrorResponse;
 import com.pdc.userservice.dto.response.StudentResponse;
 import com.pdc.userservice.services.StudentService;
@@ -126,5 +127,11 @@ public class StudentController {
     public ResponseEntity<Boolean> checkStudentExists(
             @Parameter(description = "Student ID to check", required = true) @PathVariable UUID id) {
         return ResponseEntity.ok(studentService.existsById(id));
+    }
+
+    @GetMapping("/auth-student/{email}")
+    public ResponseEntity<AuthStudentResponse> getAuthStudentByEmail(@PathVariable String email){
+        AuthStudentResponse response = studentService.getAuthStudentByEmail(email);
+        return ResponseEntity.ok(response);
     }
 }

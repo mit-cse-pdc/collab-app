@@ -2,6 +2,7 @@ package com.pdc.userservice.services;
 
 import com.pdc.userservice.dto.request.StudentCreateRequest;
 import com.pdc.userservice.dto.request.StudentUpdateRequest;
+import com.pdc.userservice.dto.response.AuthStudentResponse;
 import com.pdc.userservice.dto.response.StudentResponse;
 import jakarta.persistence.EntityNotFoundException;
 
@@ -51,6 +52,8 @@ public interface StudentService {
      * @throws EntityNotFoundException if student not found
      */
     StudentResponse updateStudent(UUID id, StudentUpdateRequest request);
+
+    AuthStudentResponse getAuthStudentByEmail(String email);
 
     /**
      * Deletes a student by their ID

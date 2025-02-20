@@ -9,12 +9,17 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.List;
 
 @Schema(description = "Update Question Request")
 @Data
 @Builder
-public class UpdateQuestionRequest {
+public class UpdateQuestionRequest implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Schema(description = "Updated title of the question", example = "Geography Question 1 - Revised")
     @NotBlank(message = "Question title is required")
     @Size(min = 3, max = 255, message = "Title must be between 3 and 255 characters")

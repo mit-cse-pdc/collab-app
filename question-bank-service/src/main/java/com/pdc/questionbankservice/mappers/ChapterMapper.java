@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class ChapterMapper {
@@ -38,5 +40,9 @@ public class ChapterMapper {
     public void updateEntity(UpdateChapterRequest request, Chapter chapter) {
         modelMapper.map(request, chapter);
         chapter.setUpdatedAt(LocalDateTime.now());
+    }
+
+    public List<ChapterResponse> toListResponse(List<Chapter> chapters) {
+        return chapters.stream().map(this::toResponse).collect(Collectors.toList());
     }
 }

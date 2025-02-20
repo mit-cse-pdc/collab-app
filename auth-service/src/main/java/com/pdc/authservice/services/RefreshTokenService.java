@@ -7,12 +7,10 @@ import com.pdc.authservice.exceptions.TokenRevokedException;
 import com.pdc.authservice.repositories.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Service
@@ -88,11 +86,11 @@ public class RefreshTokenService {
         log.info("All tokens revoked for user: {}", userId);
     }
 
-    @Scheduled(cron = "0 0 0 * * *") // Run daily at midnight
-    @Transactional
-    public void cleanupExpiredTokens() {
-        log.debug("Running expired tokens cleanup");
-        refreshTokenRepository.deleteExpiredTokens(ZonedDateTime.now());
-        log.info("Completed expired tokens cleanup");
-    }
+//    @Scheduled(cron = "0 0 0 * * *") // Run daily at midnight
+//    @Transactional
+//    public void cleanupExpiredTokens() {
+//        log.debug("Running expired tokens cleanup");
+//        refreshTokenRepository.deleteExpiredTokens(LocalDateTime.now());
+//        log.info("Completed expired tokens cleanup");
+//    }
 }

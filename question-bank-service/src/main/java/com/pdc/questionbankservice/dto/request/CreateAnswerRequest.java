@@ -6,10 +6,16 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Schema(description = "Create Answer Request")
 @Data
 @Builder
-public class CreateAnswerRequest {
+public class CreateAnswerRequest implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Schema(description = "Answer text", example = "Paris")
     @NotBlank(message = "Answer text is required")
     private String text;

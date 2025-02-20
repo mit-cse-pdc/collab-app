@@ -2,6 +2,7 @@ package com.pdc.userservice.services.impl;
 
 import com.pdc.userservice.dto.request.StudentCreateRequest;
 import com.pdc.userservice.dto.request.StudentUpdateRequest;
+import com.pdc.userservice.dto.response.AuthStudentResponse;
 import com.pdc.userservice.dto.response.StudentResponse;
 import com.pdc.userservice.entities.Student;
 import com.pdc.userservice.mappers.StudentMapper;
@@ -113,6 +114,15 @@ public class StudentServiceImpl implements StudentService {
 
         student = studentRepository.save(student);
         return studentMapper.toResponse(student);
+    }
+
+    @Override
+    public AuthStudentResponse getAuthStudentByEmail(String email) {
+        Student student = studentRepository
+                .findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("Student not found with email: " + email));
+
+        return studentMapper.toAuthResponse(student);
     }
 
     @Override

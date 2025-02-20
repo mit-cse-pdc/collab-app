@@ -12,6 +12,7 @@ import com.pdc.masterdataservice.repositories.CourseRepository;
 import com.pdc.masterdataservice.repositories.SpecializationRepository;
 import com.pdc.masterdataservice.services.CourseService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -30,6 +31,7 @@ public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
     private final SpecializationRepository specializationRepository;
     private final CourseMapper courseMapper;
+    private final ModelMapper modelMapper;
 
     @Override
     @Transactional
