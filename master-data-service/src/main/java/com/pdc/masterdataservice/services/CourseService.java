@@ -15,4 +15,6 @@ public interface CourseService {
     List<CourseDto> getCoursesBySpecialization(UUID specializationId);
     CourseDto updateCourse(UUID courseId, UpdateCourseDto updateCourseDto);
     void deleteCourse(UUID courseId);
+
+    Boolean courseExistsById(UUID id);
 }

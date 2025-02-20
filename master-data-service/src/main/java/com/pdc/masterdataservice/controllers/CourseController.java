@@ -244,4 +244,19 @@ public class CourseController {
         courseService.deleteCourse(courseId);
         return ResponseEntity.noContent().build();
     }
+
+    @ApiResponses(
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Course exists",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = Boolean.class)
+                    )
+            )
+    )
+    @GetMapping("/exists/{id}")
+    public Boolean courseExistsById(@Parameter(description = "UUID of course to verify") @PathVariable UUID id) {
+        return courseService.courseExistsById(id);
+    }
 }

@@ -118,6 +118,11 @@ public class CourseServiceImpl implements CourseService {
         courseRepository.delete(course);
     }
 
+    @Override
+    public Boolean courseExistsById(UUID id) {
+        return courseRepository.existsById(id);
+    }
+
     private Course findCourseOrThrow(UUID courseId) {
         return courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException(
