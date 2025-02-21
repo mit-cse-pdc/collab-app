@@ -46,7 +46,6 @@ public class QuestionServiceImpl implements QuestionService {
     private final FacultyClient facultyClient;
     private final QuestionMapper questionMapper;
 
-
     @Override
     @Transactional
     @Caching(

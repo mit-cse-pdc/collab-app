@@ -113,12 +113,6 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
                 });
     }
 
-    private Mono<Void> handleUnauthorized(ServerWebExchange exchange, String message) {
-        log.error("Unauthorized request: {}", message);
-        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-        return exchange.getResponse().setComplete();
-    }
-
     @Data
     public static class Config {
     }

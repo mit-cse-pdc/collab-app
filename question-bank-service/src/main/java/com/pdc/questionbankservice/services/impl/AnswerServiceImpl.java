@@ -40,6 +40,7 @@ public class AnswerServiceImpl implements AnswerService {
 
         Answer answer = answerMapper.toEntity(request);
         answer.setQuestion(question);
+
         Answer savedAnswer = answerRepository.save(answer);
         log.info("Answer created with ID: {}", savedAnswer.getAnswerId());
         return answerMapper.toResponse(savedAnswer);
@@ -56,7 +57,6 @@ public class AnswerServiceImpl implements AnswerService {
     @Override
     @Transactional
     @CacheEvict(cacheNames = {ANSWER_CACHE, ANSWER_LIST_CACHE}, allEntries = true)
-    // Using allEntries since we need to clear all related caches
     public AnswerResponse updateAnswer(UUID answerId, CreateAnswerRequest request) {
         log.info("Updating answer with ID: {}", answerId);
         Answer answer = findAnswerOrThrowException(answerId);
@@ -72,12 +72,8 @@ public class AnswerServiceImpl implements AnswerService {
     @CacheEvict(cacheNames = {ANSWER_CACHE, ANSWER_LIST_CACHE}, allEntries = true)
     public void deleteAnswer(UUID answerId) {
         log.info("Deleting answer with ID: {}", answerId);
-        if (answerRepository.existsById(answerId)) {
-            answerRepository.deleteById(answerId);
-            log.info("Answer deleted with ID: {}", answerId);
-        } else {
-            throw new ResourceNotFoundException(Messages.ANSWER_NOT_FOUND + answerId);
-        }
+        Answer answer = findAnswerOrThrowException(answerId);
+        answerRepository.delete(answer);
     }
 
     @Override
@@ -89,6 +85,8 @@ public class AnswerServiceImpl implements AnswerService {
     }
 
     private Answer findAnswerOrThrowException(UUID answerId) {
-        return answerRepository.findById(answerId).orElseThrow(() -> new ResourceNotFoundException(Messages.ANSWER_NOT_FOUND + answerId));
+        return answerRepository
+                .findById(answerId)
+                .orElseThrow(() -> new ResourceNotFoundException(Messages.ANSWER_NOT_FOUND + answerId));
     }
 }
