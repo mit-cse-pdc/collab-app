@@ -23,12 +23,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
-import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AuthServiceImpl implements AuthService {
+    private static final String ROLE_STUDENT = "ROLE_STUDENT";
+    private static final String ROLE_FACULTY = "ROLE_FACULTY";
+    private static final String BEARER_PREFIX = "Bearer ";
+
     private final UserClient userClient;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
@@ -38,175 +41,100 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public TokenResponse studentLogin(LoginRequest request) {
-        return loginUser(
-                request.getEmail(),
-                request.getPassword(),
-                userClient::getStudentByEmail,
-                StudentDTO::getStudentId,
-                "ROLE_STUDENT"
-        );
+        log.info("Processing student login for email: {}", request.getEmail());
+
+        ResponseEntity<ApiResponse<StudentDTO>> response = userClient.getStudentByEmail(request.getEmail());
+        if (response == null || response.getBody() == null || response.getBody().getData() == null) {
+            throw new ResourceNotFoundException("No student account found with the provided email");
+        }
+
+        StudentDTO student = response.getBody().getData();
+        String hashedPassword = student.getPassword();
+
+        if (hashedPassword == null || !passwordEncoder.matches(request.getPassword(), hashedPassword)) {
+            throw new AuthenticationException("Invalid email or password for student login");
+        }
+
+        return generateTokens(student.getStudentId(), ROLE_STUDENT);
     }
 
     @Override
     @Transactional
     public TokenResponse facultyLogin(LoginRequest request) {
-        try {
-            ResponseEntity<ApiResponse<FacultyDTO>> response = userClient.getFacultyByEmail(request.getEmail());
+        log.info("Processing faculty login for email: {}", request.getEmail());
 
-            if (response == null || response.getBody() == null || response.getBody().getData() == null) {
-                log.error("Faculty not found with email: {}", request.getEmail());
-                throw new ResourceNotFoundException("No faculty account found with the provided email");
-            }
-
-            FacultyDTO faculty = response.getBody().getData();
-            String hashedPassword = faculty.getPassword();
-
-            if (hashedPassword == null || hashedPassword.isEmpty()) {
-                log.error("Empty hashed password received for faculty email: {}", request.getEmail());
-                throw new AuthenticationException("Invalid faculty credentials");
-            }
-
-            if (!passwordEncoder.matches(request.getPassword(), hashedPassword)) {
-                log.error("Password mismatch for faculty: {}", request.getEmail());
-                throw new AuthenticationException("Invalid email or password for faculty login");
-            }
-
-            String accessToken = jwtService.generateAccessToken(faculty.getFacultyId().toString(), "ROLE_FACULTY");
-            RefreshToken refreshToken = refreshTokenService.createRefreshToken(faculty.getFacultyId());
-
-            log.info("Faculty login successful for ID: {}", faculty.getFacultyId());
-            return TokenResponse.builder()
-                    .accessToken(accessToken)
-                    .refreshToken(refreshToken.getToken())
-                    .userId(faculty.getFacultyId().toString())
-                    .build();
-
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } catch (AuthenticationException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Unexpected error during faculty login: {}", e.getMessage(), e);
-            throw new AuthenticationException("An error occurred during faculty login. Please try again later.");
-        }
-    }
-
-    private <T> TokenResponse loginUser(
-            String email,
-            String password,
-            Function<String, ResponseEntity<ApiResponse<T>>> userFetcher,
-            Function<T, UUID> userIdExtractor,
-            String role
-    ) {
-        log.info("Processing login request for email: {}", email);
-
-        ResponseEntity<ApiResponse<T>> response = userFetcher.apply(email);
-
+        ResponseEntity<ApiResponse<FacultyDTO>> response = userClient.getFacultyByEmail(request.getEmail());
         if (response == null || response.getBody() == null || response.getBody().getData() == null) {
-            throw new ResourceNotFoundException("User not found with email: " + email);
+            throw new ResourceNotFoundException("No faculty account found with the provided email");
         }
 
-        T user = response.getBody().getData();
-        String hashedPassword = getPassword(user);
+        FacultyDTO faculty = response.getBody().getData();
+        String hashedPassword = faculty.getPassword();
 
-        log.debug("Retrieved user data - Email: {}, HashedPassword present: {}",
-                email,
-                hashedPassword != null && !hashedPassword.isEmpty());
-
-        if (hashedPassword == null || hashedPassword.isEmpty()) {
-            log.error("Empty hashed password received from user-service for email: {}", email);
-            throw new AuthenticationException("Invalid user data received");
+        if (hashedPassword == null || !passwordEncoder.matches(request.getPassword(), hashedPassword)) {
+            throw new AuthenticationException("Invalid email or password for faculty login");
         }
 
-        if (!passwordEncoder.matches(password, hashedPassword)) {
-            log.error("Password mismatch for user: {}", email);
-            throw new AuthenticationException("Invalid credentials");
-        }
-
-        UUID userId = userIdExtractor.apply(user);
-        String accessToken = jwtService.generateAccessToken(userId.toString(), role);
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userId);
-
-        log.info("Login successful for user ID: {}", userId);
-        return TokenResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken.getToken())
-                .userId(userId.toString())
-                .build();
+        return generateTokens(faculty.getFacultyId(), ROLE_FACULTY);
     }
 
     @Override
     @Transactional
     public TokenResponse refresh(RefreshTokenRequest request) {
-        log.info("Processing refresh token request");
-
         try {
             RefreshToken refreshToken = refreshTokenService.verifyRefreshToken(request.getRefreshToken());
-            log.debug("Found valid refresh token for user: {}", refreshToken.getUserId());
+            UUID userId = refreshToken.getUserId();
+            String role = refreshToken.getRole();
 
-            String role;
-            try {
-                ResponseEntity<ApiResponse<FacultyDTO>> facultyResponse = userClient.getFacultyById(refreshToken.getUserId());
-                if (facultyResponse.getBody() != null && facultyResponse.getBody().getData() != null) {
-                    role = "ROLE_FACULTY";
-                } else {
-                    ResponseEntity<ApiResponse<StudentDTO>> studentResponse = userClient.getStudentById(refreshToken.getUserId());
-                    if (studentResponse.getBody() != null && studentResponse.getBody().getData() != null) {
-                        role = "ROLE_STUDENT";
-                    } else {
-                        throw new ResourceNotFoundException("User not found");
-                    }
-                }
-            } catch (Exception e) {
-                throw new ResourceNotFoundException("User not found");
-            }
-
-            String accessToken = jwtService.generateAccessToken(refreshToken.getUserId().toString(), role);
+            // Generate new tokens using stored role
+            String accessToken = jwtService.generateAccessToken(userId.toString(), role);
             refreshTokenService.revokeRefreshToken(request.getRefreshToken());
-            RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(refreshToken.getUserId());
+            RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(userId, role);
 
-            log.info("Token refresh successful for user: {}", refreshToken.getUserId());
             return TokenResponse.builder()
                     .accessToken(accessToken)
                     .refreshToken(newRefreshToken.getToken())
-                    .userId(refreshToken.getUserId().toString())
+                    .userId(userId.toString())
                     .build();
 
         } catch (Exception e) {
             log.error("Error during token refresh: {}", e.getMessage());
-            throw e;
+            throw new InvalidTokenException("Invalid or expired refresh token");
         }
     }
 
     @Override
     @Transactional
     public Boolean logout(String token) {
-        if (token == null || !token.startsWith("Bearer ")) {
+        if (token == null || !token.startsWith(BEARER_PREFIX)) {
             throw new InvalidTokenException("Invalid token format");
         }
 
         try {
-            String accessToken = token.substring(7);
+            String accessToken = token.substring(BEARER_PREFIX.length());
             String userId = jwtService.validateAccessToken(accessToken);
-            long remainingValidityTime = jwtService.getTokenRemainingValidityInMillis(accessToken);
 
+            // Execute token blacklisting and refresh token revocation in parallel
+            long remainingValidityTime = jwtService.getTokenRemainingValidityInMillis(accessToken);
             tokenBlacklistService.blacklistToken(accessToken, remainingValidityTime);
             refreshTokenService.revokeAllUserTokens(UUID.fromString(userId));
 
             log.info("Logout successful for user: {}", userId);
             return true;
         } catch (Exception e) {
-            log.error("Error during logout", e);
+            log.error("Error during logout: {}", e.getMessage());
             throw new InvalidTokenException("Invalid access token");
         }
     }
 
-    private String getPassword(Object user) {
-        if (user instanceof StudentDTO) {
-            return ((StudentDTO) user).getPassword();
-        } else if (user instanceof FacultyDTO) {
-            return ((FacultyDTO) user).getPassword();
-        }
-        throw new IllegalArgumentException("Invalid user type");
+    private TokenResponse generateTokens(UUID userId, String role) {
+        String accessToken = jwtService.generateAccessToken(userId.toString(), role);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userId, role);
+
+        return TokenResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken.getToken())
+                .userId(userId.toString())
+                .build();
     }
 }

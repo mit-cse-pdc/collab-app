@@ -172,6 +172,15 @@ CREATE TABLE refresh_tokens
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- First add the column with ROLE_STUDENT as default (assuming most users are students)
+ALTER TABLE refresh_tokens
+    ADD COLUMN role VARCHAR(50) NOT NULL DEFAULT 'ROLE_STUDENT';
+
+-- Add check constraint to ensure only valid roles are inserted
+ALTER TABLE refresh_tokens
+    ADD CONSTRAINT chk_valid_role
+        CHECK (role IN ('ROLE_STUDENT', 'ROLE_FACULTY'));
+
 -- Function to delete expired refresh tokens
 CREATE OR REPLACE FUNCTION cleanup_expired_refresh_tokens()
     RETURNS TRIGGER AS $$

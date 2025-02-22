@@ -21,20 +21,23 @@ public class RefreshTokenService {
     private final JwtService jwtService;
 
     @Transactional
-    public RefreshToken createRefreshToken(UUID userId) {
-        log.debug("Creating refresh token for user: {}", userId);
+    public RefreshToken createRefreshToken(UUID userId, String role) {
+        log.debug("Creating refresh token for user: {} with role: {}", userId, role);
 
         // Revoke existing tokens
         refreshTokenRepository.revokeAllUserTokens(userId);
 
         // Create new token
-        RefreshToken refreshToken = new RefreshToken();
-        refreshToken.setUserId(userId);
-        refreshToken.setToken(UUID.randomUUID().toString());
-        refreshToken.setExpiresAt(LocalDateTime.now().plusSeconds(jwtService.getRefreshTokenExpiration() / 1000));
+        RefreshToken refreshToken = RefreshToken.builder()
+                .userId(userId)
+                .token(UUID.randomUUID().toString())
+                .role(role)
+                .expiresAt(LocalDateTime.now().plusSeconds(jwtService.getRefreshTokenExpiration() / 1000))
+                .build();
 
+        //save token in DB
         RefreshToken savedToken = refreshTokenRepository.save(refreshToken);
-        log.info("Created new refresh token for user: {}", userId);
+        log.info("Created new refresh token for user: {} with role: {}", userId, role);
         return savedToken;
     }
 
@@ -85,12 +88,4 @@ public class RefreshTokenService {
         refreshTokenRepository.revokeAllUserTokens(userId);
         log.info("All tokens revoked for user: {}", userId);
     }
-
-//    @Scheduled(cron = "0 0 0 * * *") // Run daily at midnight
-//    @Transactional
-//    public void cleanupExpiredTokens() {
-//        log.debug("Running expired tokens cleanup");
-//        refreshTokenRepository.deleteExpiredTokens(LocalDateTime.now());
-//        log.info("Completed expired tokens cleanup");
-//    }
 }

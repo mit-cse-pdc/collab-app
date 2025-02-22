@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.security.Key;
 import java.util.Date;
 import java.util.Map;
-import java.util.function.Function;
 
 @Service
 @Getter
@@ -23,63 +22,43 @@ public class JwtService {
     @Value("${jwt.access.secret}")
     private String accessSecret;
 
-    @Value("${jwt.refresh.secret}")
-    private String refreshSecret;
-
     @Value("${jwt.access.expiration}")
-    private Long accessExpiration;
+    private Long accessTokenExpiration;
 
     @Value("${jwt.refresh.expiration}")
-    private Long refreshExpiration;
+    private Long refreshTokenExpiration;
 
     private Key accessKey;
-    private Key refreshKey;
 
     @PostConstruct
     public void init() {
         try {
             this.accessKey = Keys.hmacShaKeyFor(accessSecret.getBytes());
-            this.refreshKey = Keys.hmacShaKeyFor(refreshSecret.getBytes());
-            log.info("JWT keys initialized successfully");
+            log.info("JWT access key initialized successfully");
         } catch (Exception e) {
-            log.error("Failed to initialize JWT keys", e);
-            throw new IllegalStateException("Failed to initialize JWT keys", e);
+            log.error("Failed to initialize JWT access key", e);
+            throw new IllegalStateException("Failed to initialize JWT access key", e);
         }
     }
 
     public String generateAccessToken(String userId, String role) {
-        return generateToken(userId, Map.of("role", role), accessKey, accessExpiration);
-    }
-
-    public String generateRefreshToken(String userId, String role) {
-        return generateToken(userId, Map.of("role", role), refreshKey, refreshExpiration);
-    }
-
-    private String generateToken(String userId, Map<String, Object> claims, Key key, Long expiration) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + expiration);
+        Date expiryDate = new Date(now.getTime() + accessTokenExpiration);
 
         return Jwts.builder()
-                .setClaims(claims)
+                .setClaims(Map.of("role", role))
                 .setSubject(userId)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(key, SignatureAlgorithm.HS512)
+                .signWith(accessKey, SignatureAlgorithm.HS512)
                 .compact();
     }
 
+
     public String validateAccessToken(String token) {
-        return validateToken(token, accessKey);
-    }
-
-    public String validateRefreshToken(String token) {
-        return validateToken(token, refreshKey);
-    }
-
-    private String validateToken(String token, Key key) {
         try {
             Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(key)
+                    .setSigningKey(accessKey)
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
@@ -95,49 +74,18 @@ public class JwtService {
         }
     }
 
-    public String extractRoleFromToken(String token) {
-        try {
-            Claims claims = extractAllClaims(token, refreshKey);
-            return claims.get("role", String.class);
-        } catch (Exception e) {
-            log.error("Error extracting role from token: {}", e.getMessage());
-            throw new InvalidTokenException("Invalid token");
-        }
-    }
-
-    public Claims extractAllClaims(String token, Key key) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-    }
-
     public long getTokenRemainingValidityInMillis(String token) {
         try {
-            Claims claims = extractAllClaims(token, accessKey);
-            Date expiration = claims.getExpiration();
-            return expiration.getTime() - System.currentTimeMillis();
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(accessKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            return claims.getExpiration().getTime() - System.currentTimeMillis();
         } catch (Exception e) {
             log.error("Error getting token remaining validity: {}", e.getMessage());
             return 0;
         }
-    }
-
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver, Key key) {
-        final Claims claims = extractAllClaims(token, key);
-        return claimsResolver.apply(claims);
-    }
-
-    public Long getAccessTokenExpiration() {
-        return this.accessExpiration;
-    }
-
-    public Long getRefreshTokenExpiration() {
-        return this.refreshExpiration;
-    }
-
-    public boolean isTokenExpired(String token) {
-        return extractClaim(token, Claims::getExpiration, refreshKey).before(new Date());
     }
 }
