@@ -1,16 +1,15 @@
 package com.pdc.masterdataservice.controllers;
 
-import com.pdc.masterdataservice.dto.response.ErrorResponse;
 import com.pdc.masterdataservice.dto.SchoolDto;
 import com.pdc.masterdataservice.dto.request.CreateSchoolDto;
 import com.pdc.masterdataservice.dto.request.UpdateSchoolDto;
+import com.pdc.masterdataservice.dto.response.ApiResponse;
 import com.pdc.masterdataservice.services.SchoolService;
+import com.pdc.masterdataservice.utils.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -35,189 +34,137 @@ public class SchoolController {
             summary = "Create a new school",
             description = "Creates a new school with the provided details"
     )
-    @ApiResponses({
-            @ApiResponse(
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "201",
                     description = "School created successfully",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = SchoolDto.class)
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                    {
+                        "success": true,
+                        "status": 201,
+                        "message": "School created successfully",
+                        "data": {
+                            "schoolId": "123e4567-e89b-12d3-a456-426614174000",
+                            "name": "School of Engineering",
+                            "createdAt": "2025-02-22 10:30:00",
+                            "updatedAt": "2025-02-22 10:30:00"
+                        },
+                        "errors": null,
+                        "timestamp": "2025-02-22T10:30:00Z"
+                    }
+                    """)
                     )
             ),
-            @ApiResponse(
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
                     description = "Invalid input provided",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "409",
-                    description = "School with the same name already exists",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class)
-                    )
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
             )
     })
     @PostMapping
-    public ResponseEntity<SchoolDto> createSchool(
-            @Parameter(
-                    description = "School creation request body",
-                    required = true,
-                    schema = @Schema(implementation = CreateSchoolDto.class)
-            )
-            @Valid @RequestBody CreateSchoolDto createSchoolDto
-    ) {
-        return new ResponseEntity<>(schoolService.createSchool(createSchoolDto), HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<SchoolDto>> createSchool(@Valid @RequestBody CreateSchoolDto createSchoolDto) {
+        SchoolDto school = schoolService.createSchool(createSchoolDto);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ResponseUtil.success(school, "School created successfully", HttpStatus.CREATED));
     }
 
     @Operation(
             summary = "Get a school by ID",
             description = "Retrieves school details by its UUID"
     )
-    @ApiResponses({
-            @ApiResponse(
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
                     description = "School found successfully",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = SchoolDto.class)
+                            schema = @Schema(implementation = ApiResponse.class)
                     )
             ),
-            @ApiResponse(
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "School not found",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class)
-                    )
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
             )
     })
     @GetMapping("/{schoolId}")
-    public ResponseEntity<SchoolDto> getSchool(
-            @Parameter(
-                    description = "UUID of the school to retrieve",
-                    required = true,
-                    schema = @Schema(type = "string", format = "uuid")
-            )
-            @PathVariable UUID schoolId
-    ) {
-        return ResponseEntity.ok(schoolService.getSchoolById(schoolId));
+    public ResponseEntity<ApiResponse<SchoolDto>> getSchool(@PathVariable UUID schoolId) {
+        SchoolDto school = schoolService.getSchoolById(schoolId);
+        return ResponseEntity.ok(
+                ResponseUtil.success(school, "School fetched successfully", HttpStatus.OK)
+        );
     }
 
     @Operation(
             summary = "Get all schools",
             description = "Retrieves a list of all schools"
     )
-    @ApiResponses({
-            @ApiResponse(
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
                     description = "Schools retrieved successfully",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            array = @ArraySchema(schema = @Schema(implementation = SchoolDto.class))
-                    )
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
             )
     })
     @GetMapping
-    public ResponseEntity<List<SchoolDto>> getAllSchools() {
-        return ResponseEntity.ok(schoolService.getAllSchools());
+    public ResponseEntity<ApiResponse<List<SchoolDto>>> getAllSchools() {
+        List<SchoolDto> schools = schoolService.getAllSchools();
+        return ResponseEntity.ok(
+                ResponseUtil.success(schools, "Schools fetched successfully", HttpStatus.OK)
+        );
     }
 
     @Operation(
             summary = "Update a school",
             description = "Updates an existing school's details"
     )
-    @ApiResponses({
-            @ApiResponse(
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
                     description = "School updated successfully",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = SchoolDto.class)
-                    )
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
             ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Invalid input provided",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class)
-                    )
-            ),
-            @ApiResponse(
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "School not found",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "409",
-                    description = "Updated name conflicts with an existing school",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class)
-                    )
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
             )
     })
     @PutMapping("/{schoolId}")
-    public ResponseEntity<SchoolDto> updateSchool(
-            @Parameter(
-                    description = "UUID of the school to update",
-                    required = true,
-                    schema = @Schema(type = "string", format = "uuid")
-            )
+    public ResponseEntity<ApiResponse<SchoolDto>> updateSchool(
             @PathVariable UUID schoolId,
-            @Parameter(
-                    description = "School update request body",
-                    required = true,
-                    schema = @Schema(implementation = UpdateSchoolDto.class)
-            )
-            @Valid @RequestBody UpdateSchoolDto updateSchoolDto
-    ) {
-        return ResponseEntity.ok(schoolService.updateSchool(schoolId, updateSchoolDto));
+            @Valid @RequestBody UpdateSchoolDto updateSchoolDto) {
+        SchoolDto school = schoolService.updateSchool(schoolId, updateSchoolDto);
+        return ResponseEntity.ok(
+                ResponseUtil.success(school, "School updated successfully", HttpStatus.OK)
+        );
     }
 
     @Operation(
             summary = "Delete a school",
             description = "Deletes a school by its UUID"
     )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "204",
-                    description = "School deleted successfully"
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "School deleted successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
             ),
-            @ApiResponse(
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "School not found",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "409",
-                    description = "Cannot delete school with associated specializations",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class)
-                    )
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
             )
     })
     @DeleteMapping("/{schoolId}")
-    public ResponseEntity<Void> deleteSchool(
-            @Parameter(
-                    description = "UUID of the school to delete",
-                    required = true,
-                    schema = @Schema(type = "string", format = "uuid")
-            )
-            @PathVariable UUID schoolId
-    ) {
+    public ResponseEntity<ApiResponse<Void>> deleteSchool(@PathVariable UUID schoolId) {
         schoolService.deleteSchool(schoolId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(
+                ResponseUtil.success(null, "School deleted successfully", HttpStatus.OK)
+        );
     }
 }

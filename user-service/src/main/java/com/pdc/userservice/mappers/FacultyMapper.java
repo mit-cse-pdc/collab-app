@@ -2,7 +2,6 @@ package com.pdc.userservice.mappers;
 
 import com.pdc.userservice.dto.request.FacultyCreateRequest;
 import com.pdc.userservice.dto.request.FacultyUpdateRequest;
-import com.pdc.userservice.dto.response.AuthFacultyResponse;
 import com.pdc.userservice.dto.response.FacultyResponse;
 import com.pdc.userservice.entities.Faculty;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +25,5 @@ public class FacultyMapper implements Serializable {
 
     public void updateEntity(FacultyUpdateRequest request, Faculty faculty) {
         modelMapper.map(request, faculty);
-    }
-
-    public AuthFacultyResponse toAuthResponse(Faculty faculty) {
-        return modelMapper.map(faculty, AuthFacultyResponse.class);
     }
 }

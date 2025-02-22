@@ -35,7 +35,7 @@ public class RefreshTokenService {
                 .expiresAt(LocalDateTime.now().plusSeconds(jwtService.getRefreshTokenExpiration() / 1000))
                 .build();
 
-        //save token in DB
+        //persist token in DB
         RefreshToken savedToken = refreshTokenRepository.save(refreshToken);
         log.info("Created new refresh token for user: {} with role: {}", userId, role);
         return savedToken;
@@ -45,7 +45,8 @@ public class RefreshTokenService {
     public RefreshToken verifyRefreshToken(String token) {
         log.debug("Verifying refresh token");
 
-        return refreshTokenRepository.findByToken(token)
+        return refreshTokenRepository
+                .findByToken(token)
                 .map(this::validateRefreshToken)
                 .orElseThrow(() -> {
                     log.error("Refresh token not found: {}", token);

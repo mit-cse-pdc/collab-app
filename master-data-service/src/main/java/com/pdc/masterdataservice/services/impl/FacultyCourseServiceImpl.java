@@ -3,6 +3,7 @@ package com.pdc.masterdataservice.services.impl;
 import com.pdc.masterdataservice.clients.UserClient;
 import com.pdc.masterdataservice.dto.FacultyCourseDto;
 import com.pdc.masterdataservice.dto.request.CreateFacultyCourseDto;
+import com.pdc.masterdataservice.dto.response.ApiResponse;
 import com.pdc.masterdataservice.entities.Course;
 import com.pdc.masterdataservice.entities.FacultyCourse;
 import com.pdc.masterdataservice.exceptions.DuplicateResourceException;
@@ -12,6 +13,7 @@ import com.pdc.masterdataservice.repositories.CourseRepository;
 import com.pdc.masterdataservice.repositories.FacultyCourseRepository;
 import com.pdc.masterdataservice.services.FacultyCourseService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -32,6 +35,18 @@ public class FacultyCourseServiceImpl implements FacultyCourseService {
     private final CourseRepository courseRepository;
     private final FacultyCourseMapper facultyCourseMapper;
     private final UserClient userClient;
+
+    private void validateFacultyExists(UUID facultyId) {
+        ResponseEntity<ApiResponse<Boolean>> response = userClient.facultyExistsById(facultyId);
+        ApiResponse<Boolean> apiResponse = response.getBody();
+
+        if (apiResponse == null || apiResponse.getData() == null || !apiResponse.getData()) {
+            log.error("Faculty not found with ID: {}", facultyId);
+            throw new ResourceNotFoundException(
+                    String.format("Faculty not found with ID: %s", facultyId)
+            );
+        }
+    }
 
     @Override
     @Transactional
@@ -43,28 +58,19 @@ public class FacultyCourseServiceImpl implements FacultyCourseService {
             }
     )
     public FacultyCourseDto assignCourse(CreateFacultyCourseDto createFacultyCourseDto) {
-        // Validate faculty exists
-        ResponseEntity<Boolean> facultyExists = userClient.facultyExistsById(createFacultyCourseDto.getFacultyId());
-        if (!Boolean.TRUE.equals(facultyExists.getBody())) {
-            throw new ResourceNotFoundException(
-                    String.format("Faculty not found with ID: %s", createFacultyCourseDto.getFacultyId())
-            );
-        }
+        validateFacultyExists(createFacultyCourseDto.getFacultyId());
 
-        // Check if already assigned
         if (facultyCourseRepository.existsByFacultyIdAndCourseCourseId(
                 createFacultyCourseDto.getFacultyId(),
                 createFacultyCourseDto.getCourseId())) {
             throw new DuplicateResourceException("Course is already assigned to this faculty");
         }
 
-        // Get and validate course
         Course course = courseRepository.findById(createFacultyCourseDto.getCourseId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         String.format("Course not found with ID: %s", createFacultyCourseDto.getCourseId())
                 ));
 
-        // Check if course is active
         if (course.getStatus() != Course.CourseStatus.ACTIVE) {
             throw new IllegalStateException("Cannot assign inactive course");
         }
@@ -82,13 +88,7 @@ public class FacultyCourseServiceImpl implements FacultyCourseService {
             @CacheEvict(value = "courseAssignments", key = "#courseId")
     })
     public void unassignCourse(UUID facultyId, UUID courseId) {
-        // Validate faculty exists
-        ResponseEntity<Boolean> facultyExists = userClient.facultyExistsById(facultyId);
-        if (!Boolean.TRUE.equals(facultyExists.getBody())) {
-            throw new ResourceNotFoundException(
-                    String.format("Faculty not found with ID: %s", facultyId)
-            );
-        }
+        validateFacultyExists(facultyId);
 
         FacultyCourse facultyCourse = facultyCourseRepository
                 .findByFacultyIdAndCourseCourseId(facultyId, courseId)
@@ -100,13 +100,7 @@ public class FacultyCourseServiceImpl implements FacultyCourseService {
     @Override
     @Cacheable(value = "facultyAssignments", key = "#facultyId", unless = "#result.isEmpty()")
     public List<FacultyCourseDto> getFacultyAssignments(UUID facultyId) {
-        // Validate faculty exists
-        ResponseEntity<Boolean> facultyExists = userClient.facultyExistsById(facultyId);
-        if (!Boolean.TRUE.equals(facultyExists.getBody())) {
-            throw new ResourceNotFoundException(
-                    String.format("Faculty not found with ID: %s", facultyId)
-            );
-        }
+        validateFacultyExists(facultyId);
 
         List<FacultyCourse> assignments = facultyCourseRepository.findByFacultyId(facultyId);
         return facultyCourseMapper.toDtoList(assignments);
@@ -115,7 +109,6 @@ public class FacultyCourseServiceImpl implements FacultyCourseService {
     @Override
     @Cacheable(value = "courseAssignments", key = "#courseId", unless = "#result.isEmpty()")
     public List<FacultyCourseDto> getCourseAssignments(UUID courseId) {
-        // Validate course exists
         if (!courseRepository.existsById(courseId)) {
             throw new ResourceNotFoundException(
                     String.format("Course not found with ID: %s", courseId)
@@ -128,14 +121,7 @@ public class FacultyCourseServiceImpl implements FacultyCourseService {
 
     @Override
     public boolean isAssigned(UUID facultyId, UUID courseId) {
-        // Validate faculty exists
-        ResponseEntity<Boolean> facultyExists = userClient.facultyExistsById(facultyId);
-        if (!Boolean.TRUE.equals(facultyExists.getBody())) {
-            throw new ResourceNotFoundException(
-                    String.format("Faculty not found with ID: %s", facultyId)
-            );
-        }
-
+        validateFacultyExists(facultyId);
         return facultyCourseRepository.existsByFacultyIdAndCourseCourseId(facultyId, courseId);
     }
 }

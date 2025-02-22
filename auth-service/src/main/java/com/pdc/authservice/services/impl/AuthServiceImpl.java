@@ -86,10 +86,12 @@ public class AuthServiceImpl implements AuthService {
             UUID userId = refreshToken.getUserId();
             String role = refreshToken.getRole();
 
-            // Generate new tokens using stored role
-            String accessToken = jwtService.generateAccessToken(userId.toString(), role);
+            //revoke refresh token
             refreshTokenService.revokeRefreshToken(request.getRefreshToken());
+            // generate new refresh token
             RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(userId, role);
+            // Generate new access token
+            String accessToken = jwtService.generateAccessToken(userId.toString(), role);
 
             return TokenResponse.builder()
                     .accessToken(accessToken)
