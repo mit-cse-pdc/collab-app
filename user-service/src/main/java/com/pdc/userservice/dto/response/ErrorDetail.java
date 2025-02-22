@@ -4,15 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.util.Map;
+import java.io.Serial;
+import java.io.Serializable;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ValidationErrorResponse {
-    private int status;
+public class ErrorDetail implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private String field;
     private String message;
-    private Map<String, String> errors;
-    private LocalDateTime timestamp;
 }

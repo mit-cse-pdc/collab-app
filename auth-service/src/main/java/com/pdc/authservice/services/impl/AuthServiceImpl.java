@@ -5,6 +5,7 @@ import com.pdc.authservice.dto.FacultyDTO;
 import com.pdc.authservice.dto.StudentDTO;
 import com.pdc.authservice.dto.request.LoginRequest;
 import com.pdc.authservice.dto.request.RefreshTokenRequest;
+import com.pdc.authservice.dto.response.ApiResponse;
 import com.pdc.authservice.dto.response.TokenResponse;
 import com.pdc.authservice.entities.RefreshToken;
 import com.pdc.authservice.exceptions.AuthenticationException;
@@ -41,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
                 request.getEmail(),
                 request.getPassword(),
                 userClient::getStudentByEmail,
-                user -> ((StudentDTO) user).getStudentId(),
+                StudentDTO::getStudentId,
                 "ROLE_STUDENT"
         );
     }
@@ -53,9 +54,53 @@ public class AuthServiceImpl implements AuthService {
                 request.getEmail(),
                 request.getPassword(),
                 userClient::getFacultyByEmail,
-                user -> ((FacultyDTO) user).getFacultyId(),
+                FacultyDTO::getFacultyId,
                 "ROLE_FACULTY"
         );
+    }
+
+    private <T> TokenResponse loginUser(
+            String email,
+            String password,
+            Function<String, ResponseEntity<ApiResponse<T>>> userFetcher,
+            Function<T, UUID> userIdExtractor,
+            String role
+    ) {
+        log.info("Processing login request for email: {}", email);
+
+        ResponseEntity<ApiResponse<T>> response = userFetcher.apply(email);
+
+        if (response == null || response.getBody() == null || response.getBody().getData() == null) {
+            throw new ResourceNotFoundException("User not found with email: " + email);
+        }
+
+        T user = response.getBody().getData();
+        String hashedPassword = getPassword(user);
+
+        log.debug("Retrieved user data - Email: {}, HashedPassword present: {}",
+                email,
+                hashedPassword != null && !hashedPassword.isEmpty());
+
+        if (hashedPassword == null || hashedPassword.isEmpty()) {
+            log.error("Empty hashed password received from user-service for email: {}", email);
+            throw new AuthenticationException("Invalid user data received");
+        }
+
+        if (!passwordEncoder.matches(password, hashedPassword)) {
+            log.error("Password mismatch for user: {}", email);
+            throw new AuthenticationException("Invalid credentials");
+        }
+
+        UUID userId = userIdExtractor.apply(user);
+        String accessToken = jwtService.generateAccessToken(userId.toString(), role);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userId);
+
+        log.info("Login successful for user ID: {}", userId);
+        return TokenResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken.getToken())
+                .userId(userId.toString())
+                .build();
     }
 
     @Override
@@ -64,31 +109,28 @@ public class AuthServiceImpl implements AuthService {
         log.info("Processing refresh token request");
 
         try {
-            // 1. Verify refresh token from database
             RefreshToken refreshToken = refreshTokenService.verifyRefreshToken(request.getRefreshToken());
             log.debug("Found valid refresh token for user: {}", refreshToken.getUserId());
 
-            // 2. Get user details to determine role
             String role;
             try {
-                userClient.getFacultyById(refreshToken.getUserId());
-                role = "ROLE_FACULTY";
-            } catch (Exception e) {
-                try {
-                    userClient.getStudentById(refreshToken.getUserId());
-                    role = "ROLE_STUDENT";
-                } catch (Exception ex) {
-                    throw new ResourceNotFoundException("User not found");
+                ResponseEntity<ApiResponse<FacultyDTO>> facultyResponse = userClient.getFacultyById(refreshToken.getUserId());
+                if (facultyResponse.getBody() != null && facultyResponse.getBody().getData() != null) {
+                    role = "ROLE_FACULTY";
+                } else {
+                    ResponseEntity<ApiResponse<StudentDTO>> studentResponse = userClient.getStudentById(refreshToken.getUserId());
+                    if (studentResponse.getBody() != null && studentResponse.getBody().getData() != null) {
+                        role = "ROLE_STUDENT";
+                    } else {
+                        throw new ResourceNotFoundException("User not found");
+                    }
                 }
+            } catch (Exception e) {
+                throw new ResourceNotFoundException("User not found");
             }
 
-            // 3. Generate new tokens
             String accessToken = jwtService.generateAccessToken(refreshToken.getUserId().toString(), role);
-
-            // 4. Revoke old refresh token
             refreshTokenService.revokeRefreshToken(request.getRefreshToken());
-
-            // 5. Create new refresh token
             RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(refreshToken.getUserId());
 
             log.info("Token refresh successful for user: {}", refreshToken.getUserId());
@@ -113,17 +155,10 @@ public class AuthServiceImpl implements AuthService {
 
         try {
             String accessToken = token.substring(7);
-
-            // Validate the token first
             String userId = jwtService.validateAccessToken(accessToken);
-
-            // Calculate remaining validity time
             long remainingValidityTime = jwtService.getTokenRemainingValidityInMillis(accessToken);
 
-            // Blacklist the access token
             tokenBlacklistService.blacklistToken(accessToken, remainingValidityTime);
-
-            // Revoke all refresh tokens
             refreshTokenService.revokeAllUserTokens(UUID.fromString(userId));
 
             log.info("Logout successful for user: {}", userId);
@@ -132,38 +167,6 @@ public class AuthServiceImpl implements AuthService {
             log.error("Error during logout", e);
             throw new InvalidTokenException("Invalid access token");
         }
-    }
-
-    private TokenResponse loginUser(
-            String email,
-            String password,
-            Function<String, ResponseEntity<?>> userFetcher,
-            Function<Object, UUID> userIdExtractor,
-            String role
-    ) {
-        log.info("Processing login request for email: {}", email);
-
-        ResponseEntity<?> response = userFetcher.apply(email);
-        Object user = response.getBody();
-
-        if (user == null) {
-            throw new ResourceNotFoundException("User not found with email: " + email);
-        }
-
-        if (!passwordEncoder.matches(password, getPassword(user))) {
-            throw new AuthenticationException("Invalid credentials");
-        }
-
-        UUID userId = userIdExtractor.apply(user);
-        String accessToken = jwtService.generateAccessToken(userId.toString(), role);
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userId);
-
-        log.info("Login successful for user ID: {}", userId);
-        return TokenResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken.getToken())
-                .userId(userId.toString())
-                .build();
     }
 
     private String getPassword(Object user) {

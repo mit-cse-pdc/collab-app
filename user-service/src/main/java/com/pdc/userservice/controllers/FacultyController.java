@@ -2,21 +2,23 @@ package com.pdc.userservice.controllers;
 
 import com.pdc.userservice.dto.request.FacultyCreateRequest;
 import com.pdc.userservice.dto.request.FacultyUpdateRequest;
-import com.pdc.userservice.dto.response.AuthFacultyResponse;
-import com.pdc.userservice.dto.response.ErrorResponse;
+import com.pdc.userservice.dto.response.ApiResponse;
 import com.pdc.userservice.dto.response.FacultyResponse;
 import com.pdc.userservice.services.FacultyService;
+import com.pdc.userservice.utils.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -26,91 +28,240 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/faculty")
-@Tag(name = "Faculty", description = "Faculty management APIs")
+@Tag(name = "Faculty Management", description = "APIs for managing faculty members")
+@SecurityRequirement(name = "bearer-jwt")
 @Validated
 @RequiredArgsConstructor
 public class FacultyController {
 
     private final FacultyService facultyService;
 
-    @Operation(summary = "Create a new faculty member", description = "Creates a new faculty member with the provided information")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Faculty created successfully",
-                    content = @Content(schema = @Schema(implementation = FacultyResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid input",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "409", description = "Faculty already exists with given email",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @Operation(
+            summary = "Create a new faculty member",
+            description = "Creates a new faculty member with the provided information"
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "201",
+                    description = "Faculty created successfully",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                    {
+                        "success": true,
+                        "status": 201,
+                        "message": "Faculty created successfully",
+                        "data": {
+                            "facultyId": "123e4567-e89b-12d3-a456-426614174000",
+                            "name": "John Doe",
+                            "email": "john.doe@example.com",
+                            "position": "PROFESSOR"
+                        },
+                        "errors": null,
+                        "timestamp": "2025-02-17T14:25:00Z"
+                    }
+                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid input",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            )
     })
     @PostMapping
-    public ResponseEntity<FacultyResponse> createFaculty(@Valid @RequestBody FacultyCreateRequest request) {
-        FacultyResponse facultyResponse = facultyService.createFaculty(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(facultyResponse);
+    public ResponseEntity<ApiResponse<FacultyResponse>> createFaculty(@Valid @RequestBody FacultyCreateRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ResponseUtil.success(facultyService.createFaculty(request), "Faculty created successfully", HttpStatus.CREATED));
     }
 
-    @Operation(summary = "Get a faculty member by ID", description = "Returns a faculty member based on the provided ID")
+    @Operation(
+            summary = "Get faculty member by ID",
+            description = "Retrieves a faculty member's information using their ID"
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Faculty found successfully",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                    {
+                        "success": true,
+                        "status": 200,
+                        "message": "Faculty fetched successfully",
+                        "data": {
+                            "facultyId": "123e4567-e89b-12d3-a456-426614174000",
+                            "name": "John Doe",
+                            "email": "john.doe@example.com",
+                            "position": "PROFESSOR"
+                        },
+                        "errors": null,
+                        "timestamp": "2025-02-17T14:25:00Z"
+                    }
+                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Faculty not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            )
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<FacultyResponse> getFacultyById(
-            @Parameter(description = "Faculty ID", required = true) @PathVariable UUID id
-    ) {
-        FacultyResponse facultyResponse = facultyService.getFacultyById(id);
-        return ResponseEntity.ok(facultyResponse);
+    public ResponseEntity<ApiResponse<FacultyResponse>> getFacultyById(
+            @Parameter(description = "Faculty ID", required = true)
+            @PathVariable UUID id) {
+        return ResponseEntity.ok(ResponseUtil.success(facultyService.getFacultyById(id), "Faculty fetched successfully", HttpStatus.OK));
     }
 
-    @Operation(summary = "Get a faculty member by email", description = "Returns a faculty member based on the provided email")
+    @Operation(
+            summary = "Get faculty member by email",
+            description = "Retrieves a faculty member's information using their email address"
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Faculty found successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Faculty not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            )
+    })
     @GetMapping("/email/{email}")
-    public ResponseEntity<FacultyResponse> getFacultyByEmail(
-            @Parameter(description = "Faculty email", required = true) @PathVariable @Email(message = "Invalid email format") String email
-    ) {
-        FacultyResponse facultyResponse = facultyService.getFacultyByEmail(email);
-        return ResponseEntity.ok(facultyResponse);
+    public ResponseEntity<ApiResponse<FacultyResponse>> getFacultyByEmail(
+            @Parameter(description = "Faculty email", example = "john.doe@example.com", required = true)
+            @PathVariable @Email(message = "Invalid email format") String email) {
+        return ResponseEntity.ok(ResponseUtil.success(facultyService.getFacultyByEmail(email), "Faculty fetched successfully", HttpStatus.OK));
     }
 
-    @Operation(summary = "Get all faculty members", description = "Returns a list of all faculty members")
+    @Operation(
+            summary = "Get all faculty members",
+            description = "Retrieves a list of all faculty members"
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Faculty list retrieved successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            )
+    })
     @GetMapping
-    public ResponseEntity<List<FacultyResponse>> getAllFaculty() {
-        List<FacultyResponse> facultyResponses = facultyService.getAllFaculty();
-        return ResponseEntity.ok(facultyResponses);
+    public ResponseEntity<ApiResponse<List<FacultyResponse>>> getAllFaculty() {
+        return ResponseEntity.ok(ResponseUtil.success(facultyService.getAllFaculty(), "Faculties fetched successfully", HttpStatus.OK));
     }
 
-    @Operation(summary = "Update a faculty member", description = "Updates an existing faculty member's information")
+    @Operation(
+            summary = "Update faculty member",
+            description = "Updates an existing faculty member's information"
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Faculty updated successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Faculty not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            )
+    })
     @PutMapping("/{id}")
-    public ResponseEntity<FacultyResponse> updateFaculty(
+    public ResponseEntity<ApiResponse<FacultyResponse>> updateFaculty(
             @Parameter(description = "Faculty ID", required = true) @PathVariable UUID id,
-            @Valid @RequestBody FacultyUpdateRequest request
-    ) {
-        FacultyResponse facultyResponse = facultyService.updateFaculty(id, request);
-        return ResponseEntity.ok(facultyResponse);
+            @Valid @RequestBody FacultyUpdateRequest request) {
+        return ResponseEntity.ok(ResponseUtil.success(facultyService.updateFaculty(id, request), "Faculty updated successfully", HttpStatus.OK));
     }
 
-    @Operation(summary = "Delete a faculty member", description = "Deletes a faculty member by their ID")
+    @Operation(
+            summary = "Delete faculty member",
+            description = "Deletes a faculty member by their ID"
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Faculty deleted successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Faculty not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            )
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteFaculty(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> deleteFaculty(@PathVariable UUID id) {
         facultyService.deleteFaculty(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ResponseUtil.success(null, "Faculty deleted successfully", HttpStatus.OK));
     }
 
-    @Operation(summary = "Check if email exists", description = "Checks if a faculty member exists with the given email")
+    @Operation(
+            summary = "Check email existence",
+            description = "Checks if a faculty member exists with the given email"
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Check completed successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            )
+    })
     @GetMapping("/exists/email/{email}")
-    public ResponseEntity<Boolean> checkEmailExists(
-            @Parameter(description = "Email to check", required = true) @PathVariable @Email(message = "Invalid email format") String email
-    ) {
-        Boolean exists = facultyService.existsByEmail(email);
-        return ResponseEntity.ok(exists);
+    public ResponseEntity<ApiResponse<Boolean>> checkEmailExists(
+            @Parameter(description = "Email to check", example = "john.doe@example.com", required = true)
+            @PathVariable @Email(message = "Invalid email format") String email) {
+        return ResponseEntity.ok(ResponseUtil.success(facultyService.existsByEmail(email), "Email existence checked successfully", HttpStatus.OK));
     }
 
-    @Operation(summary = "Check if faculty exists", description = "Checks if a faculty member exists with the given ID")
+    @Operation(
+            summary = "Check faculty existence by ID",
+            description = "Checks if a faculty member exists with the given ID"
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Check completed successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            )
+    })
     @GetMapping("/exists/{id}")
-    public ResponseEntity<Boolean> checkFacultyExists(
-            @Parameter(description = "Faculty ID to check", required = true) @PathVariable UUID id
-    ) {
-        Boolean exists = facultyService.existsById(id);
-        return ResponseEntity.ok(exists);
+    public ResponseEntity<ApiResponse<Boolean>> checkFacultyExists(
+            @Parameter(description = "Faculty ID to check", required = true)
+            @PathVariable UUID id) {
+        return ResponseEntity.ok(ResponseUtil.success(facultyService.existsById(id), "Faculty existence checked successfully", HttpStatus.OK));
     }
 
-    @GetMapping("/auth-faculty/{email}")
-    public ResponseEntity<AuthFacultyResponse> getAuthFacultyByEmail(@PathVariable String email){
-        AuthFacultyResponse response = facultyService.getAuthFacultyByEmail(email);
-        return ResponseEntity.ok(response);
-    }
+//    @Operation(
+//            summary = "Get faculty authentication details",
+//            description = "Retrieves authentication details for a faculty member using their email"
+//    )
+//    @ApiResponses(value = {
+//            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+//                    responseCode = "200",
+//                    description = "Auth details retrieved successfully",
+//                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+//            ),
+//            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+//                    responseCode = "404",
+//                    description = "Faculty not found",
+//                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+//            )
+//    })
+//    @GetMapping("/auth-faculty/{email}")
+//    public ResponseEntity<ApiResponse<AuthFacultyResponse>> getAuthFacultyByEmail(
+//            @Parameter(description = "Faculty email", example = "john.doe@example.com", required = true)
+//            @PathVariable String email) {
+//        return ResponseEntity.ok(ResponseUtil.success(facultyService.getAuthFacultyByEmail(email), "Auth faculty fetched successfully", HttpStatus.OK));
+//    }
 }

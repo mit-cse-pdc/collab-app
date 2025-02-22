@@ -2,7 +2,6 @@ package com.pdc.userservice.services.impl;
 
 import com.pdc.userservice.dto.request.FacultyCreateRequest;
 import com.pdc.userservice.dto.request.FacultyUpdateRequest;
-import com.pdc.userservice.dto.response.AuthFacultyResponse;
 import com.pdc.userservice.dto.response.FacultyResponse;
 import com.pdc.userservice.entities.Faculty;
 import com.pdc.userservice.mappers.FacultyMapper;
@@ -105,16 +104,16 @@ public class FacultyServiceImpl implements FacultyService {
         return facultyMapper.toResponse(faculty);
     }
 
-    @Override
-    public AuthFacultyResponse getAuthFacultyByEmail(String email) {
-        Faculty faculty = facultyRepository
-                .findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("Faculty not found with email: " + email));
-
-        log.info("Auth Faculty found: {}", faculty);
-
-        return facultyMapper.toAuthResponse(faculty);
-    }
+//    @Override
+//    public AuthFacultyResponse getAuthFacultyByEmail(String email) {
+//        Faculty faculty = facultyRepository
+//                .findByEmail(email)
+//                .orElseThrow(() -> new EntityNotFoundException("Faculty not found with email: " + email));
+//
+//        log.info("Auth Faculty found: {}", faculty);
+//
+//        return facultyMapper.toAuthResponse(faculty);
+//    }
 
     @Override
     @Caching(evict = {
