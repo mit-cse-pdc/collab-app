@@ -2,7 +2,10 @@ package com.pdc.authservice.handlers;
 
 import com.pdc.authservice.dto.response.ApiResponse;
 import com.pdc.authservice.dto.response.ErrorDetail;
-import com.pdc.authservice.exceptions.*;
+import com.pdc.authservice.exceptions.AuthenticationException;
+import com.pdc.authservice.exceptions.InvalidTokenException;
+import com.pdc.authservice.exceptions.ResourceNotFoundException;
+import com.pdc.authservice.exceptions.TokenExpiredException;
 import com.pdc.authservice.utils.ResponseUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -11,6 +14,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,11 +25,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiResponse<Object>> handleAuthenticationException(
             AuthenticationException ex) {
+        List<ErrorDetail> errors = Collections.singletonList(
+                new ErrorDetail("credentials", ex.getMessage())
+        );
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ResponseUtil.error(
-                        "Unauthorized. Please log in.",
-                        null,
+                        "Authentication failed",
+                        errors,
                         HttpStatus.UNAUTHORIZED
                 ));
     }
@@ -33,11 +40,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidTokenException.class)
     public ResponseEntity<ApiResponse<Object>> handleInvalidTokenException(
             InvalidTokenException ex) {
+        List<ErrorDetail> errors = Collections.singletonList(
+                new ErrorDetail("token", "The provided authentication token is invalid")
+        );
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ResponseUtil.error(
-                        ex.getMessage(),
-                        null,
+                        "Invalid authentication token",
+                        errors,
                         HttpStatus.UNAUTHORIZED
                 ));
     }
@@ -45,23 +55,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TokenExpiredException.class)
     public ResponseEntity<ApiResponse<Object>> handleTokenExpiredException(
             TokenExpiredException ex) {
+        List<ErrorDetail> errors = Collections.singletonList(
+                new ErrorDetail("token", "Your authentication token has expired. Please log in again")
+        );
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ResponseUtil.error(
-                        ex.getMessage(),
-                        null,
-                        HttpStatus.UNAUTHORIZED
-                ));
-    }
-
-    @ExceptionHandler(TokenRevokedException.class)
-    public ResponseEntity<ApiResponse<Object>> handleTokenRevokedException(
-            TokenRevokedException ex) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(ResponseUtil.error(
-                        ex.getMessage(),
-                        null,
+                        "Token expired",
+                        errors,
                         HttpStatus.UNAUTHORIZED
                 ));
     }
@@ -69,14 +70,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<Object>> handleResourceNotFoundException(
             ResourceNotFoundException ex) {
+        List<ErrorDetail> errors = Collections.singletonList(
+                new ErrorDetail("resource", ex.getMessage())
+        );
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ResponseUtil.error(
-                        "No records found",
-                        null,
+                        "Resource not found",
+                        errors,
                         HttpStatus.NOT_FOUND
                 ));
     }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Object>> handleValidationErrors(

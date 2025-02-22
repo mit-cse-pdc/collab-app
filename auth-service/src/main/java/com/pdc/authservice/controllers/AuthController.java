@@ -56,7 +56,7 @@ public class AuthController {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
-                    description = "Invalid credentials",
+                    description = "Authentication failed",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiResponse.class),
@@ -64,9 +64,14 @@ public class AuthController {
                     {
                         "success": false,
                         "status": 401,
-                        "message": "Unauthorized. Please log in.",
+                        "message": "Authentication failed",
                         "data": null,
-                        "errors": null,
+                        "errors": [
+                            {
+                                "field": "credentials",
+                                "message": "Invalid email or password"
+                            }
+                        ],
                         "timestamp": "2025-02-17T14:25:00Z"
                     }
                     """)
@@ -91,13 +96,68 @@ public class AuthController {
                     description = "Successfully authenticated",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ApiResponse.class)
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                    {
+                        "success": true,
+                        "status": 200,
+                        "message": "Login successful",
+                        "data": {
+                            "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
+                            "refreshToken": "eyJhbGciOiJIUzI1NiJ9...",
+                            "userId": "123e4567-e89b-12d3-a456-426614174000"
+                        },
+                        "errors": null,
+                        "timestamp": "2025-02-17T14:25:00Z"
+                    }
+                    """)
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
-                    description = "Invalid credentials",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+                    description = "Authentication failed",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                    {
+                        "success": false,
+                        "status": 401,
+                        "message": "Authentication failed",
+                        "data": null,
+                        "errors": [
+                            {
+                                "field": "credentials",
+                                "message": "Invalid email or password for faculty login"
+                            }
+                        ],
+                        "timestamp": "2025-02-17T14:25:00Z"
+                    }
+                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Faculty not found",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                    {
+                        "success": false,
+                        "status": 404,
+                        "message": "Resource not found",
+                        "data": null,
+                        "errors": [
+                            {
+                                "field": "email",
+                                "message": "No faculty account found with the provided email"
+                            }
+                        ],
+                        "timestamp": "2025-02-17T14:25:00Z"
+                    }
+                    """)
+                    )
             )
     })
     @PostMapping("/faculty/login")

@@ -50,13 +50,45 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public TokenResponse facultyLogin(LoginRequest request) {
-        return loginUser(
-                request.getEmail(),
-                request.getPassword(),
-                userClient::getFacultyByEmail,
-                FacultyDTO::getFacultyId,
-                "ROLE_FACULTY"
-        );
+        try {
+            ResponseEntity<ApiResponse<FacultyDTO>> response = userClient.getFacultyByEmail(request.getEmail());
+
+            if (response == null || response.getBody() == null || response.getBody().getData() == null) {
+                log.error("Faculty not found with email: {}", request.getEmail());
+                throw new ResourceNotFoundException("No faculty account found with the provided email");
+            }
+
+            FacultyDTO faculty = response.getBody().getData();
+            String hashedPassword = faculty.getPassword();
+
+            if (hashedPassword == null || hashedPassword.isEmpty()) {
+                log.error("Empty hashed password received for faculty email: {}", request.getEmail());
+                throw new AuthenticationException("Invalid faculty credentials");
+            }
+
+            if (!passwordEncoder.matches(request.getPassword(), hashedPassword)) {
+                log.error("Password mismatch for faculty: {}", request.getEmail());
+                throw new AuthenticationException("Invalid email or password for faculty login");
+            }
+
+            String accessToken = jwtService.generateAccessToken(faculty.getFacultyId().toString(), "ROLE_FACULTY");
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(faculty.getFacultyId());
+
+            log.info("Faculty login successful for ID: {}", faculty.getFacultyId());
+            return TokenResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken.getToken())
+                    .userId(faculty.getFacultyId().toString())
+                    .build();
+
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (AuthenticationException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error during faculty login: {}", e.getMessage(), e);
+            throw new AuthenticationException("An error occurred during faculty login. Please try again later.");
+        }
     }
 
     private <T> TokenResponse loginUser(
