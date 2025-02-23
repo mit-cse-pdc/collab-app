@@ -12,14 +12,13 @@ import java.util.UUID;
 
 @FeignClient(name = "user-service", path = "/api/v1")
 public interface UserClient {
-
-    @GetMapping("/faculty/auth-faculty/{email}")
+    @GetMapping("/faculty/email/{email}")
     ResponseEntity<ApiResponse<FacultyDTO>> getFacultyByEmail(@PathVariable String email);
 
     @GetMapping("/faculty/{id}")
     ResponseEntity<ApiResponse<FacultyDTO>> getFacultyById(@PathVariable UUID id);
 
-    @GetMapping("/students/auth-student/{email}")
+    @GetMapping("/students/email/{email}")
     ResponseEntity<ApiResponse<StudentDTO>> getStudentByEmail(@PathVariable String email);
 
     @GetMapping("/students/{id}")
