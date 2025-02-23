@@ -1,90 +1,60 @@
 package com.pdc.questionbankservice.handlers;
 
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-import com.pdc.questionbankservice.dto.response.ErrorResponse;
+import com.pdc.questionbankservice.dto.response.ApiResponse;
+import com.pdc.questionbankservice.dto.response.ErrorDetail;
 import com.pdc.questionbankservice.exceptions.ResourceNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private ResponseEntity<ErrorResponse> buildErrorResponse(
-            HttpServletRequest request,
-            HttpStatus status,
-            String message,
-            List<ErrorResponse.ValidationError> errors
-    ) {
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(status.value())
-                .message(message)
-                .path(request.getRequestURI())
-                .errors(errors)
-                .build();
-
-        log.error("Error occurred: {}", message);
-        return new ResponseEntity<>(errorResponse, status);
-    }
-
-    private List<ErrorResponse.ValidationError> mapFieldErrors(List<FieldError> fieldErrors) {
-        return fieldErrors.stream()
-                .map(error -> ErrorResponse.ValidationError.builder()
-                        .field(error.getField())
-                        .message(error.getDefaultMessage())
-                        .build())
-                .collect(Collectors.toList());
-    }
-
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex, HttpServletRequest request) {
-        return buildErrorResponse(request, HttpStatus.NOT_FOUND, ex.getMessage(), null);
+    public ResponseEntity<ApiResponse<Void>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.createSingleError(ex.getMessage(), HttpStatus.NOT_FOUND.value()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex, HttpServletRequest request) {
-        List<ErrorResponse.ValidationError> validationErrors = mapFieldErrors(ex.getBindingResult().getFieldErrors());
-        return buildErrorResponse(request, HttpStatus.BAD_REQUEST, "Validation failed", validationErrors);
-    }
+    public ResponseEntity<ApiResponse<Void>> handleValidationException(MethodArgumentNotValidException ex) {
+        List<ErrorDetail> errors = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> new ErrorDetail(error.getField(), error.getDefaultMessage()))
+                .toList();
 
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleTypeMismatchException(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
-        ErrorResponse.ValidationError validationError = ErrorResponse.ValidationError.builder()
-                .field(ex.getName())
-                .message("Invalid value provided for parameter")
-                .build();
-        return buildErrorResponse(request, HttpStatus.BAD_REQUEST, "Invalid parameter type", List.of(validationError));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.createValidationError(errors, "Validation failed", HttpStatus.BAD_REQUEST.value()));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         String message = ex.getCause() instanceof UnrecognizedPropertyException cause ?
-                String.format("Unknown field: '%s' (known properties: %s)", cause.getPropertyName(), cause.getKnownPropertyIds()) :
+                String.format("Unknown field: '%s'", cause.getPropertyName()) :
                 "Invalid request body";
-        return buildErrorResponse(request, HttpStatus.BAD_REQUEST, message, null);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.createSingleError(message, HttpStatus.BAD_REQUEST.value()));
     }
 
-    @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNoResourceFoundException(NoResourceFoundException ex, HttpServletRequest request) {
-        return buildErrorResponse(request, HttpStatus.NOT_FOUND, "Resource not found", null);
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<Void>> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        String message = String.format("Invalid value for parameter '%s'", ex.getName());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.createSingleError(message, HttpStatus.BAD_REQUEST.value()));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
-        return buildErrorResponse(request, HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", null);
+    public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
+        log.error("Unexpected error occurred", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.createSingleError("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR.value()));
     }
 }
