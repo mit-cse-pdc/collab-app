@@ -6,7 +6,6 @@ import com.pdc.authservice.exceptions.AuthenticationException;
 import com.pdc.authservice.exceptions.InvalidTokenException;
 import com.pdc.authservice.exceptions.ResourceNotFoundException;
 import com.pdc.authservice.exceptions.TokenExpiredException;
-import com.pdc.authservice.utils.ResponseUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,100 +15,93 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ApiResponse<Object>> handleAuthenticationException(
+    public ResponseEntity<ApiResponse<Void>> handleAuthenticationException(
             AuthenticationException ex) {
         List<ErrorDetail> errors = Collections.singletonList(
                 new ErrorDetail("credentials", ex.getMessage())
         );
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(ResponseUtil.error(
-                        "Authentication failed",
+                .body(ApiResponse.createValidationError(
                         errors,
-                        HttpStatus.UNAUTHORIZED
+                        "Authentication failed",
+                        HttpStatus.UNAUTHORIZED.value()
                 ));
     }
 
     @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<ApiResponse<Object>> handleInvalidTokenException(
+    public ResponseEntity<ApiResponse<Void>> handleInvalidTokenException(
             InvalidTokenException ex) {
         List<ErrorDetail> errors = Collections.singletonList(
                 new ErrorDetail("token", "The provided authentication token is invalid")
         );
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(ResponseUtil.error(
-                        "Invalid authentication token",
+                .body(ApiResponse.createValidationError(
                         errors,
-                        HttpStatus.UNAUTHORIZED
+                        "Invalid authentication token",
+                        HttpStatus.UNAUTHORIZED.value()
                 ));
     }
 
     @ExceptionHandler(TokenExpiredException.class)
-    public ResponseEntity<ApiResponse<Object>> handleTokenExpiredException(
+    public ResponseEntity<ApiResponse<Void>> handleTokenExpiredException(
             TokenExpiredException ex) {
         List<ErrorDetail> errors = Collections.singletonList(
                 new ErrorDetail("token", "Your authentication token has expired. Please log in again")
         );
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(ResponseUtil.error(
-                        "Token expired",
+                .body(ApiResponse.createValidationError(
                         errors,
-                        HttpStatus.UNAUTHORIZED
+                        "Token expired",
+                        HttpStatus.UNAUTHORIZED.value()
                 ));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiResponse<Object>> handleResourceNotFoundException(
+    public ResponseEntity<ApiResponse<Void>> handleResourceNotFoundException(
             ResourceNotFoundException ex) {
-        List<ErrorDetail> errors = Collections.singletonList(
-                new ErrorDetail("resource", ex.getMessage())
-        );
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(ResponseUtil.error(
-                        "Resource not found",
-                        errors,
-                        HttpStatus.NOT_FOUND
+                .body(ApiResponse.createSingleError(
+                        ex.getMessage(),
+                        HttpStatus.NOT_FOUND.value()
                 ));
     }
 
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Object>> handleValidationErrors(
+    public ResponseEntity<ApiResponse<Void>> handleValidationErrors(
             MethodArgumentNotValidException ex) {
         List<ErrorDetail> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .map(error -> new ErrorDetail(error.getField(), error.getDefaultMessage()))
-                .collect(Collectors.toList());
+                .toList();
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ResponseUtil.error(
-                        "Invalid request data",
+                .body(ApiResponse.createValidationError(
                         errors,
-                        HttpStatus.BAD_REQUEST
+                        "Invalid request data",
+                        HttpStatus.BAD_REQUEST.value()
                 ));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Object>> handleGenericException(Exception ex) {
+    public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
         log.error("Unexpected error occurred", ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ResponseUtil.error(
-                        "Something went wrong. Please try again later.",
-                        null,
-                        HttpStatus.INTERNAL_SERVER_ERROR
+                .body(ApiResponse.createSingleError(
+                        "Something went wrong. Please try again later",
+                        HttpStatus.INTERNAL_SERVER_ERROR.value()
                 ));
     }
 }

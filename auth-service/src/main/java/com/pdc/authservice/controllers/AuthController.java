@@ -5,7 +5,6 @@ import com.pdc.authservice.dto.request.RefreshTokenRequest;
 import com.pdc.authservice.dto.response.ApiResponse;
 import com.pdc.authservice.dto.response.TokenResponse;
 import com.pdc.authservice.services.AuthService;
-import com.pdc.authservice.utils.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -82,7 +81,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<TokenResponse>> studentLogin(@Valid @RequestBody LoginRequest request) {
         TokenResponse response = authService.studentLogin(request);
         return ResponseEntity.ok(
-                ResponseUtil.success(response, "Login successful", HttpStatus.OK)
+                ApiResponse.createSuccess(response, "Login successful", HttpStatus.OK.value())
         );
     }
 
@@ -164,7 +163,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<TokenResponse>> facultyLogin(@Valid @RequestBody LoginRequest request) {
         TokenResponse response = authService.facultyLogin(request);
         return ResponseEntity.ok(
-                ResponseUtil.success(response, "Login successful", HttpStatus.OK)
+                ApiResponse.createSuccess(response, "Login successful", HttpStatus.OK.value())
         );
     }
 
@@ -191,7 +190,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<TokenResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
         TokenResponse response = authService.refresh(request);
         return ResponseEntity.ok(
-                ResponseUtil.success(response, "Token refreshed successfully", HttpStatus.OK)
+                ApiResponse.createSuccess(response, "Token refreshed successfully", HttpStatus.OK.value())
         );
     }
 
@@ -220,7 +219,7 @@ public class AuthController {
             @RequestHeader("Authorization") String token) {
         Boolean result = authService.logout(token);
         return ResponseEntity.ok(
-                ResponseUtil.success(result, "Logged out successfully", HttpStatus.OK)
+                ApiResponse.createSuccess(result, "Logged out successfully", HttpStatus.OK.value())
         );
     }
 }
