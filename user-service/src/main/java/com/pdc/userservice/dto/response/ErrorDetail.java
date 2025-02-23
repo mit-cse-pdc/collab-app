@@ -16,4 +16,10 @@ public class ErrorDetail implements Serializable {
 
     private String field;
     private String message;
+
+    // Constructor for generic errors (no specific field)
+    public ErrorDetail(String message) {
+        this.field = "error";  // Default field name instead of null
+        this.message = message;
+    }
 }

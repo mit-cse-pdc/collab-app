@@ -5,7 +5,6 @@ import com.pdc.userservice.dto.request.FacultyUpdateRequest;
 import com.pdc.userservice.dto.response.ApiResponse;
 import com.pdc.userservice.dto.response.FacultyResponse;
 import com.pdc.userservice.services.FacultyService;
-import com.pdc.userservice.utils.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -48,20 +47,20 @@ public class FacultyController {
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiResponse.class),
                             examples = @ExampleObject(value = """
-                    {
-                        "success": true,
-                        "status": 201,
-                        "message": "Faculty created successfully",
-                        "data": {
-                            "facultyId": "123e4567-e89b-12d3-a456-426614174000",
-                            "name": "John Doe",
-                            "email": "john.doe@example.com",
-                            "position": "PROFESSOR"
-                        },
-                        "errors": null,
-                        "timestamp": "2025-02-17T14:25:00Z"
-                    }
-                    """)
+                                    {
+                                        "success": true,
+                                        "status": 201,
+                                        "message": "Faculty created successfully",
+                                        "data": {
+                                            "facultyId": "123e4567-e89b-12d3-a456-426614174000",
+                                            "name": "John Doe",
+                                            "email": "john.doe@example.com",
+                                            "position": "PROFESSOR"
+                                        },
+                                        "errors": null,
+                                        "timestamp": "2025-02-17T14:25:00Z"
+                                    }
+                                    """)
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -77,8 +76,9 @@ public class FacultyController {
     })
     @PostMapping
     public ResponseEntity<ApiResponse<FacultyResponse>> createFaculty(@Valid @RequestBody FacultyCreateRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ResponseUtil.success(facultyService.createFaculty(request), "Faculty created successfully", HttpStatus.CREATED));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.createSuccess(facultyService.createFaculty(request), "Faculty created successfully", HttpStatus.CREATED.value()));
     }
 
     @Operation(
@@ -93,20 +93,20 @@ public class FacultyController {
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiResponse.class),
                             examples = @ExampleObject(value = """
-                    {
-                        "success": true,
-                        "status": 200,
-                        "message": "Faculty fetched successfully",
-                        "data": {
-                            "facultyId": "123e4567-e89b-12d3-a456-426614174000",
-                            "name": "John Doe",
-                            "email": "john.doe@example.com",
-                            "position": "PROFESSOR"
-                        },
-                        "errors": null,
-                        "timestamp": "2025-02-17T14:25:00Z"
-                    }
-                    """)
+                                    {
+                                        "success": true,
+                                        "status": 200,
+                                        "message": "Faculty fetched successfully",
+                                        "data": {
+                                            "facultyId": "123e4567-e89b-12d3-a456-426614174000",
+                                            "name": "John Doe",
+                                            "email": "john.doe@example.com",
+                                            "position": "PROFESSOR"
+                                        },
+                                        "errors": null,
+                                        "timestamp": "2025-02-17T14:25:00Z"
+                                    }
+                                    """)
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -119,7 +119,7 @@ public class FacultyController {
     public ResponseEntity<ApiResponse<FacultyResponse>> getFacultyById(
             @Parameter(description = "Faculty ID", required = true)
             @PathVariable UUID id) {
-        return ResponseEntity.ok(ResponseUtil.success(facultyService.getFacultyById(id), "Faculty fetched successfully", HttpStatus.OK));
+        return ResponseEntity.ok(ApiResponse.createSuccess(facultyService.getFacultyById(id), "Faculty fetched successfully", HttpStatus.OK.value()));
     }
 
     @Operation(
@@ -142,7 +142,7 @@ public class FacultyController {
     public ResponseEntity<ApiResponse<FacultyResponse>> getFacultyByEmail(
             @Parameter(description = "Faculty email", example = "john.doe@example.com", required = true)
             @PathVariable @Email(message = "Invalid email format") String email) {
-        return ResponseEntity.ok(ResponseUtil.success(facultyService.getFacultyByEmail(email), "Faculty fetched successfully", HttpStatus.OK));
+        return ResponseEntity.ok(ApiResponse.createSuccess(facultyService.getFacultyByEmail(email), "Faculty fetched successfully", HttpStatus.OK.value()));
     }
 
     @Operation(
@@ -158,7 +158,7 @@ public class FacultyController {
     })
     @GetMapping
     public ResponseEntity<ApiResponse<List<FacultyResponse>>> getAllFaculty() {
-        return ResponseEntity.ok(ResponseUtil.success(facultyService.getAllFaculty(), "Faculties fetched successfully", HttpStatus.OK));
+        return ResponseEntity.ok(ApiResponse.createSuccess(facultyService.getAllFaculty(), "Faculty list retrieved successfully", HttpStatus.OK.value()));
     }
 
     @Operation(
@@ -181,7 +181,7 @@ public class FacultyController {
     public ResponseEntity<ApiResponse<FacultyResponse>> updateFaculty(
             @Parameter(description = "Faculty ID", required = true) @PathVariable UUID id,
             @Valid @RequestBody FacultyUpdateRequest request) {
-        return ResponseEntity.ok(ResponseUtil.success(facultyService.updateFaculty(id, request), "Faculty updated successfully", HttpStatus.OK));
+        return ResponseEntity.ok(ApiResponse.createSuccess(facultyService.updateFaculty(id, request), "Faculty updated successfully", HttpStatus.OK.value()));
     }
 
     @Operation(
@@ -203,7 +203,7 @@ public class FacultyController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteFaculty(@PathVariable UUID id) {
         facultyService.deleteFaculty(id);
-        return ResponseEntity.ok(ResponseUtil.success(null, "Faculty deleted successfully", HttpStatus.OK));
+        return ResponseEntity.ok(ApiResponse.createSuccess(null, "Faculty deleted successfully", HttpStatus.OK.value()));
     }
 
     @Operation(
@@ -221,7 +221,7 @@ public class FacultyController {
     public ResponseEntity<ApiResponse<Boolean>> checkEmailExists(
             @Parameter(description = "Email to check", example = "john.doe@example.com", required = true)
             @PathVariable @Email(message = "Invalid email format") String email) {
-        return ResponseEntity.ok(ResponseUtil.success(facultyService.existsByEmail(email), "Email existence checked successfully", HttpStatus.OK));
+        return ResponseEntity.ok(ApiResponse.createSuccess(facultyService.existsByEmail(email), "Email existence checked successfully", HttpStatus.OK.value()));
     }
 
     @Operation(
@@ -239,29 +239,6 @@ public class FacultyController {
     public ResponseEntity<ApiResponse<Boolean>> checkFacultyExists(
             @Parameter(description = "Faculty ID to check", required = true)
             @PathVariable UUID id) {
-        return ResponseEntity.ok(ResponseUtil.success(facultyService.existsById(id), "Faculty existence checked successfully", HttpStatus.OK));
+        return ResponseEntity.ok(ApiResponse.createSuccess(facultyService.existsById(id), "Faculty existence checked successfully", HttpStatus.OK.value()));
     }
-
-//    @Operation(
-//            summary = "Get faculty authentication details",
-//            description = "Retrieves authentication details for a faculty member using their email"
-//    )
-//    @ApiResponses(value = {
-//            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-//                    responseCode = "200",
-//                    description = "Auth details retrieved successfully",
-//                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
-//            ),
-//            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-//                    responseCode = "404",
-//                    description = "Faculty not found",
-//                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
-//            )
-//    })
-//    @GetMapping("/auth-faculty/{email}")
-//    public ResponseEntity<ApiResponse<AuthFacultyResponse>> getAuthFacultyByEmail(
-//            @Parameter(description = "Faculty email", example = "john.doe@example.com", required = true)
-//            @PathVariable String email) {
-//        return ResponseEntity.ok(ResponseUtil.success(facultyService.getAuthFacultyByEmail(email), "Auth faculty fetched successfully", HttpStatus.OK));
-//    }
 }

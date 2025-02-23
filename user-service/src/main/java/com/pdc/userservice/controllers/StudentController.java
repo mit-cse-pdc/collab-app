@@ -5,7 +5,6 @@ import com.pdc.userservice.dto.request.StudentUpdateRequest;
 import com.pdc.userservice.dto.response.ApiResponse;
 import com.pdc.userservice.dto.response.StudentResponse;
 import com.pdc.userservice.services.StudentService;
-import com.pdc.userservice.utils.ResponseUtil;
 import com.pdc.userservice.validators.ValidRegistrationNumber;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -91,8 +90,9 @@ public class StudentController {
     })
     @PostMapping
     public ResponseEntity<ApiResponse<StudentResponse>> createStudent(@Valid @RequestBody StudentCreateRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ResponseUtil.success(studentService.createStudent(request), "Student created successfully", HttpStatus.CREATED));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.createSuccess(studentService.createStudent(request), "Student created successfully", HttpStatus.CREATED.value()));
     }
 
     @Operation(
@@ -118,7 +118,8 @@ public class StudentController {
     public ResponseEntity<ApiResponse<StudentResponse>> getStudentById(
             @Parameter(description = "Student ID", required = true)
             @PathVariable UUID id) {
-        return ResponseEntity.ok(ResponseUtil.success(studentService.getStudentById(id), "Student fetched successfully", HttpStatus.OK));
+        return ResponseEntity.ok(ApiResponse.createSuccess(studentService.getStudentById(id),
+                "Student fetched successfully", HttpStatus.OK.value()));
     }
 
     @Operation(
@@ -141,7 +142,8 @@ public class StudentController {
     public ResponseEntity<ApiResponse<StudentResponse>> getStudentByEmail(
             @Parameter(description = "Student email", example = "john.smith@student.example.com", required = true)
             @PathVariable @Email(message = "Invalid email format") String email) {
-        return ResponseEntity.ok(ResponseUtil.success(studentService.getStudentByEmail(email), "Student fetched successfully", HttpStatus.OK));
+        return ResponseEntity.ok(ApiResponse.createSuccess(studentService.getStudentByEmail(email),
+                "Student fetched successfully", HttpStatus.OK.value()));
     }
 
     @Operation(
@@ -164,8 +166,8 @@ public class StudentController {
     public ResponseEntity<ApiResponse<StudentResponse>> getStudentByRegistrationNo(
             @Parameter(description = "Registration number", example = "202012345", required = true)
             @PathVariable @ValidRegistrationNumber String registrationNo) {
-        return ResponseEntity.ok(ResponseUtil.success(studentService.getStudentByRegistrationNo(registrationNo),
-                "Student fetched successfully", HttpStatus.OK));
+        StudentResponse student = studentService.getStudentByRegistrationNo(registrationNo);
+        return ResponseEntity.ok(ApiResponse.createSuccess(student, "Student fetched successfully", HttpStatus.OK.value()));
     }
 
     @Operation(
@@ -181,7 +183,8 @@ public class StudentController {
     })
     @GetMapping
     public ResponseEntity<ApiResponse<List<StudentResponse>>> getAllStudents() {
-        return ResponseEntity.ok(ResponseUtil.success(studentService.getAllStudents(), "Students fetched successfully", HttpStatus.OK));
+        return ResponseEntity.ok(ApiResponse.createSuccess(studentService.getAllStudents(),
+                "Students list fetched successfully", HttpStatus.OK.value()));
     }
 
     @Operation(
@@ -204,7 +207,8 @@ public class StudentController {
     public ResponseEntity<ApiResponse<StudentResponse>> updateStudent(
             @Parameter(description = "Student ID", required = true) @PathVariable UUID id,
             @Valid @RequestBody StudentUpdateRequest request) {
-        return ResponseEntity.ok(ResponseUtil.success(studentService.updateStudent(id, request), "Student updated successfully", HttpStatus.OK));
+        return ResponseEntity.ok(ApiResponse.createSuccess(studentService.updateStudent(id, request),
+                "Student updated successfully", HttpStatus.OK.value()));
     }
 
     @Operation(
@@ -226,7 +230,7 @@ public class StudentController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteStudent(@PathVariable UUID id) {
         studentService.deleteStudent(id);
-        return ResponseEntity.ok(ResponseUtil.success(null, "Student deleted successfully", HttpStatus.OK));
+        return ResponseEntity.ok(ApiResponse.createSuccess(null, "Student deleted successfully", HttpStatus.OK.value()));
     }
 
     @Operation(
@@ -244,8 +248,8 @@ public class StudentController {
     public ResponseEntity<ApiResponse<Boolean>> checkEmailExists(
             @Parameter(description = "Email to check", example = "john.smith@student.example.com", required = true)
             @PathVariable @Email(message = "Invalid email format") String email) {
-        return ResponseEntity.ok(ResponseUtil.success(studentService.existsByEmail(email),
-                "Email existence checked successfully", HttpStatus.OK));
+        return ResponseEntity.ok(ApiResponse.createSuccess(studentService.existsByEmail(email),
+                "Email existence checked successfully", HttpStatus.OK.value()));
     }
 
     @Operation(
@@ -263,8 +267,8 @@ public class StudentController {
     public ResponseEntity<ApiResponse<Boolean>> checkRegistrationNoExists(
             @Parameter(description = "Registration number to check", example = "202012345", required = true)
             @PathVariable @ValidRegistrationNumber String registrationNo) {
-        return ResponseEntity.ok(ResponseUtil.success(studentService.existsByRegistrationNo(registrationNo),
-                "Registration number existence checked successfully", HttpStatus.OK));
+        return ResponseEntity.ok(ApiResponse.createSuccess(studentService.existsByRegistrationNo(registrationNo),
+                "Registration number existence checked successfully", HttpStatus.OK.value()));
     }
 
     @Operation(
@@ -282,31 +286,7 @@ public class StudentController {
     public ResponseEntity<ApiResponse<Boolean>> checkStudentExists(
             @Parameter(description = "Student ID to check", required = true)
             @PathVariable UUID id) {
-        return ResponseEntity.ok(ResponseUtil.success(studentService.existsById(id),
-                "Student existence checked successfully", HttpStatus.OK));
+        return ResponseEntity.ok(ApiResponse.createSuccess(studentService.existsById(id),
+                "Student existence checked successfully", HttpStatus.OK.value()));
     }
-
-//    @Operation(
-//            summary = "Get student authentication details",
-//            description = "Retrieves authentication details for a student using their email"
-//    )
-//    @ApiResponses(value = {
-//            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-//                    responseCode = "200",
-//                    description = "Auth details retrieved successfully",
-//                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
-//            ),
-//            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-//                    responseCode = "404",
-//                    description = "Student not found",
-//                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
-//            )
-//    })
-//    @GetMapping("/auth-student/{email}")
-//    public ResponseEntity<ApiResponse<AuthStudentResponse>> getAuthStudentByEmail(
-//            @Parameter(description = "Student email", example = "john.smith@student.example.com", required = true)
-//            @PathVariable String email) {
-//        return ResponseEntity.ok(ResponseUtil.success(studentService.getAuthStudentByEmail(email),
-//                "Auth student fetched successfully", HttpStatus.OK));
-//    }
 }

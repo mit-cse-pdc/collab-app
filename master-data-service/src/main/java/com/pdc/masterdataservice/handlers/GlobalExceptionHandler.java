@@ -29,8 +29,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ResponseUtil.error(
-                        "No records found",
-                        null,
+                        ex.getMessage(),
                         HttpStatus.NOT_FOUND
                 ));
     }
@@ -41,7 +40,6 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.CONFLICT)
                 .body(ResponseUtil.error(
                         ex.getMessage(),
-                        null,
                         HttpStatus.CONFLICT
                 ));
     }
@@ -52,7 +50,6 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.CONFLICT)
                 .body(ResponseUtil.error(
                         ex.getMessage(),
-                        null,
                         HttpStatus.CONFLICT
                 ));
     }
@@ -66,24 +63,19 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ResponseUtil.error(
-                        "Invalid request data",
+                .body(ResponseUtil.validationError(
                         errors,
+                        "Invalid request data",
                         HttpStatus.BAD_REQUEST
                 ));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiResponse<Object>> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
-        List<ErrorDetail> errors = List.of(
-                new ErrorDetail(ex.getName(), "Invalid value provided for parameter")
-        );
-
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ResponseUtil.error(
-                        "Invalid parameter type",
-                        errors,
+                        String.format("Invalid value provided for parameter '%s'", ex.getName()),
                         HttpStatus.BAD_REQUEST
                 ));
     }
@@ -98,7 +90,6 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ResponseUtil.error(
                         message,
-                        null,
                         HttpStatus.BAD_REQUEST
                 ));
     }
@@ -109,7 +100,6 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.NOT_FOUND)
                 .body(ResponseUtil.error(
                         "No records found",
-                        null,
                         HttpStatus.NOT_FOUND
                 ));
     }
@@ -121,7 +111,6 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ResponseUtil.error(
                         "Something went wrong. Please try again later.",
-                        null,
                         HttpStatus.INTERNAL_SERVER_ERROR
                 ));
     }

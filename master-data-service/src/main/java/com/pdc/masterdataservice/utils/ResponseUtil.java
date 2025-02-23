@@ -4,32 +4,18 @@ import com.pdc.masterdataservice.dto.response.ApiResponse;
 import com.pdc.masterdataservice.dto.response.ErrorDetail;
 import org.springframework.http.HttpStatus;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class ResponseUtil {
-    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
-
     public static <T> ApiResponse<T> success(T data, String message, HttpStatus status) {
-        return new ApiResponse<>(
-                true,
-                status.value(),
-                message,
-                data,
-                null,
-                LocalDateTime.now().format(ISO_FORMATTER)
-        );
+        return ApiResponse.createSuccess(data, message, status.value());
     }
 
-    public static ApiResponse<Object> error(String message, List<ErrorDetail> errors, HttpStatus status) {
-        return new ApiResponse<>(
-                false,
-                status.value(),
-                message,
-                null,
-                errors,
-                LocalDateTime.now().format(ISO_FORMATTER)
-        );
+    public static <T> ApiResponse<T> error(String errorMessage, HttpStatus status) {
+        return ApiResponse.createSingleError(errorMessage, status.value());
+    }
+
+    public static <T> ApiResponse<T> validationError(List<ErrorDetail> errors, String message, HttpStatus status) {
+        return ApiResponse.createValidationError(errors, message, status.value());
     }
 }

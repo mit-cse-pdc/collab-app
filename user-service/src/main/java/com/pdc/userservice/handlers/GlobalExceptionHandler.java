@@ -2,7 +2,6 @@ package com.pdc.userservice.handlers;
 
 import com.pdc.userservice.dto.response.ApiResponse;
 import com.pdc.userservice.dto.response.ErrorDetail;
-import com.pdc.userservice.utils.ResponseUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -22,23 +22,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleEntityNotFoundException(EntityNotFoundException ex) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(ResponseUtil.error(
-                        "No records found",
-                        null,
-                        HttpStatus.NOT_FOUND
-                ));
+                .body(ApiResponse.createSingleError(ex.getMessage(), HttpStatus.NOT_FOUND.value()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse<Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
-        List<ErrorDetail> errors = List.of(new ErrorDetail(null, ex.getMessage()));
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ResponseUtil.error(
-                        "Invalid request data",
-                        errors,
-                        HttpStatus.BAD_REQUEST
-                ));
+                .body(ApiResponse.createSingleError(ex.getMessage(), HttpStatus.BAD_REQUEST.value()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -50,32 +41,22 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ResponseUtil.error(
-                        "Invalid request data",
-                        errors,
-                        HttpStatus.BAD_REQUEST
-                ));
+                .body(ApiResponse.createValidationError(errors, "Invalid request data",HttpStatus.BAD_REQUEST.value()));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiResponse<Object>> handleMethodArgumentTypeMismatch(
             MethodArgumentTypeMismatchException ex) {
-        List<ErrorDetail> errors = List.of(
-                new ErrorDetail(ex.getName(), "Invalid value: " + ex.getValue())
-        );
-
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ResponseUtil.error(
-                        "Invalid request data",
-                        errors,
-                        HttpStatus.BAD_REQUEST
+                .body(ApiResponse.createSingleError(
+                        ex.getName() + " should be of type " + Objects.requireNonNull(ex.getRequiredType()).getSimpleName(),
+                        HttpStatus.BAD_REQUEST.value()
                 ));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiResponse<Object>> handleConstraintViolationException(
-            ConstraintViolationException ex) {
+    public ResponseEntity<ApiResponse<Object>> handleConstraintViolationException(ConstraintViolationException ex) {
         List<ErrorDetail> errors = ex.getConstraintViolations()
                 .stream()
                 .map(violation -> {
@@ -87,21 +68,13 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ResponseUtil.error(
-                        "Invalid request data",
-                        errors,
-                        HttpStatus.BAD_REQUEST
-                ));
+                .body(ApiResponse.createValidationError(errors,"Invalid request data", HttpStatus.BAD_REQUEST.value()));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleException(Exception ex) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ResponseUtil.error(
-                        "Something went wrong. Please try again later.",
-                        null,
-                        HttpStatus.INTERNAL_SERVER_ERROR
-                ));
+                .body(ApiResponse.createSingleError(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
     }
 }
