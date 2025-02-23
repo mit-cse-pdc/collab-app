@@ -1,6 +1,6 @@
 package com.pdc.masterdataservice.mappers;
 
-import com.pdc.masterdataservice.dto.FacultyCourseDto;
+import com.pdc.masterdataservice.dto.response.FacultyCourseDto;
 import com.pdc.masterdataservice.dto.request.CreateFacultyCourseDto;
 import com.pdc.masterdataservice.entities.Course;
 import com.pdc.masterdataservice.entities.FacultyCourse;

@@ -1,6 +1,6 @@
 package com.pdc.masterdataservice.mappers;
 
-import com.pdc.masterdataservice.dto.CourseDto;
+import com.pdc.masterdataservice.dto.response.CourseDto;
 import com.pdc.masterdataservice.dto.request.CreateCourseDto;
 import com.pdc.masterdataservice.dto.request.UpdateCourseDto;
 import com.pdc.masterdataservice.entities.Course;

@@ -1,6 +1,6 @@
 package com.pdc.masterdataservice.mappers;
 
-import com.pdc.masterdataservice.dto.SchoolDto;
+import com.pdc.masterdataservice.dto.response.SchoolDto;
 import com.pdc.masterdataservice.dto.request.CreateSchoolDto;
 import com.pdc.masterdataservice.dto.request.UpdateSchoolDto;
 import com.pdc.masterdataservice.entities.School;

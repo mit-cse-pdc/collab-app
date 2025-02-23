@@ -1,7 +1,7 @@
 package com.pdc.masterdataservice.services.impl;
 
 import com.pdc.masterdataservice.clients.UserClient;
-import com.pdc.masterdataservice.dto.EnrollmentDto;
+import com.pdc.masterdataservice.dto.response.EnrollmentDto;
 import com.pdc.masterdataservice.dto.request.CreateEnrollmentDto;
 import com.pdc.masterdataservice.dto.response.ApiResponse;
 import com.pdc.masterdataservice.entities.Course;

@@ -1,6 +1,6 @@
 package com.pdc.masterdataservice.controllers;
 
-import com.pdc.masterdataservice.dto.FacultyCourseDto;
+import com.pdc.masterdataservice.dto.response.FacultyCourseDto;
 import com.pdc.masterdataservice.dto.request.CreateFacultyCourseDto;
 import com.pdc.masterdataservice.dto.response.ApiResponse;
 import com.pdc.masterdataservice.services.FacultyCourseService;

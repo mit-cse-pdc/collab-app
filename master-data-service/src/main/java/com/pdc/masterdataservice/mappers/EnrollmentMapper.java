@@ -1,6 +1,6 @@
 package com.pdc.masterdataservice.mappers;
 
-import com.pdc.masterdataservice.dto.EnrollmentDto;
+import com.pdc.masterdataservice.dto.response.EnrollmentDto;
 import com.pdc.masterdataservice.dto.request.CreateEnrollmentDto;
 import com.pdc.masterdataservice.entities.Course;
 import com.pdc.masterdataservice.entities.Enrollment;

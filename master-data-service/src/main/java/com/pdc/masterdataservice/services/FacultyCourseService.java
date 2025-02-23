@@ -1,6 +1,6 @@
 package com.pdc.masterdataservice.services;
 
-import com.pdc.masterdataservice.dto.FacultyCourseDto;
+import com.pdc.masterdataservice.dto.response.FacultyCourseDto;
 import com.pdc.masterdataservice.dto.request.CreateFacultyCourseDto;
 
 import java.util.List;

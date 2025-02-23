@@ -1,9 +1,9 @@
 package com.pdc.masterdataservice.configs;
 
-import com.pdc.masterdataservice.dto.CourseDto;
-import com.pdc.masterdataservice.dto.EnrollmentDto;
-import com.pdc.masterdataservice.dto.FacultyCourseDto;
-import com.pdc.masterdataservice.dto.SpecializationDto;
+import com.pdc.masterdataservice.dto.response.CourseDto;
+import com.pdc.masterdataservice.dto.response.EnrollmentDto;
+import com.pdc.masterdataservice.dto.response.FacultyCourseDto;
+import com.pdc.masterdataservice.dto.response.SpecializationDto;
 import com.pdc.masterdataservice.entities.Course;
 import com.pdc.masterdataservice.entities.Enrollment;
 import com.pdc.masterdataservice.entities.FacultyCourse;

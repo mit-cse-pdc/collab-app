@@ -1,4 +1,4 @@
-package com.pdc.masterdataservice.dto;
+package com.pdc.masterdataservice.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,15 +16,15 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Schema(description = "Faculty Course DTO for responses")
-public class FacultyCourseDto implements Serializable {
+@Schema(description = "Enrollment DTO for responses")
+public class EnrollmentDto implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private UUID facultyCourseId;
-    private UUID facultyId;
+    private UUID enrollmentId;
+    private UUID studentId;
     private UUID courseId;
-    private String courseName;  // Adding course name for better usability◘
+    private String courseName;  // Additional field for better usability
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;

@@ -1,7 +1,7 @@
-package com.pdc.masterdataservice.dto;
+package com.pdc.masterdataservice.dto.response;
+
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,22 +9,19 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Schema(description = "Enrollment DTO for responses")
-public class EnrollmentDto implements Serializable {
+public class SchoolDto implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private UUID enrollmentId;
-    private UUID studentId;
-    private UUID courseId;
-    private String courseName;  // Additional field for better usability
+    private UUID schoolId;
+    private String name;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;

@@ -1,8 +1,8 @@
 package com.pdc.masterdataservice.services.impl;
 
-import com.pdc.masterdataservice.dto.CourseDto;
 import com.pdc.masterdataservice.dto.request.CreateCourseDto;
 import com.pdc.masterdataservice.dto.request.UpdateCourseDto;
+import com.pdc.masterdataservice.dto.response.CourseDto;
 import com.pdc.masterdataservice.entities.Course;
 import com.pdc.masterdataservice.entities.Specialization;
 import com.pdc.masterdataservice.exceptions.DuplicateResourceException;
@@ -12,7 +12,6 @@ import com.pdc.masterdataservice.repositories.CourseRepository;
 import com.pdc.masterdataservice.repositories.SpecializationRepository;
 import com.pdc.masterdataservice.services.CourseService;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -31,7 +30,6 @@ public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
     private final SpecializationRepository specializationRepository;
     private final CourseMapper courseMapper;
-    private final ModelMapper modelMapper;
 
     @Override
     @Transactional

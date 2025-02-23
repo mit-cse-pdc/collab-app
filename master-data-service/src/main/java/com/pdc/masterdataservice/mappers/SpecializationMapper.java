@@ -1,6 +1,6 @@
 package com.pdc.masterdataservice.mappers;
 
-import com.pdc.masterdataservice.dto.SpecializationDto;
+import com.pdc.masterdataservice.dto.response.SpecializationDto;
 import com.pdc.masterdataservice.dto.request.CreateSpecializationDto;
 import com.pdc.masterdataservice.dto.request.UpdateSpecializationDto;
 import com.pdc.masterdataservice.entities.School;
