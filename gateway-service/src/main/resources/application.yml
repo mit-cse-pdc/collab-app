@@ -28,8 +28,8 @@ spring:
             - StripPrefix=0
             - name: JwtAuthenticationFilter
 
-        - id: question-bank-service
-          uri: lb://QUESTION-BANK-SERVICE
+        - id: question-service
+          uri: lb://QUESTION-SERVICE
           predicates:
             - Path=/api/v1/questions/**, /api/v1/chapters/**, /api/v1/answers/**
           filters:

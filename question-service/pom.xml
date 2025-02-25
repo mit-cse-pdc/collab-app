@@ -9,10 +9,10 @@
         <relativePath/>
     </parent>
     <groupId>com.pdc</groupId>
-    <artifactId>question-bank-service</artifactId>
+    <artifactId>question-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>question-bank-service</name>
-    <description>question-bank-service</description>
+    <name>question-service</name>
+    <description>question-service</description>
     <url/>
     <licenses>
         <license/>
