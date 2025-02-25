@@ -1,4 +1,4 @@
-package com.pdc.lectureservice;
+package edu.manipal.cse.lectureservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
