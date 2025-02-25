@@ -61,7 +61,7 @@ springdoc:
 
 logging:
   level:
-    com.pdc.authservice: DEBUG
+    edu.manipal.cse.authservice: DEBUG
     org.springframework.web: INFO
     org.springframework.security: DEBUG
     org.springframework.cloud.openfeign: DEBUG
