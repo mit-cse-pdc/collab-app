@@ -9,7 +9,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.pdc</groupId>
+    <groupId>edu.manipal.cse</groupId>
     <artifactId>master-data-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>master-data-service</name>

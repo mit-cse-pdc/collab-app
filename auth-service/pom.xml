@@ -10,6 +10,7 @@
         <relativePath/>
     </parent>
 
+    <groupId>edu.manipal.cse</groupId>
     <artifactId>auth-service</artifactId>
 
     <properties>

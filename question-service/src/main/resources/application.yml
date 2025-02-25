@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: question-bank-service
+    name: question-service
 
   datasource:
     url: jdbc:postgresql://localhost:5432/mydb?stringtype=unspecified

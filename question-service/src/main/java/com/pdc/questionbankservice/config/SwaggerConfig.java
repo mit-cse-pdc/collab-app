@@ -37,7 +37,7 @@ public class SwaggerConfig {
                 .title("Question Bank Service API")
                 .version("1.0")
                 .contact(contact)
-                .description("This API exposes endpoints for managing question-bank.")
+                .description("This API exposes endpoints for managing questions.")
                 .license(mitLicense);
 
         return new OpenAPI()
