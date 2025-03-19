@@ -30,7 +30,7 @@
         </processorPath>
         <module name="user-service" />
       </profile>
-      <profile name="Annotation profile for question-service" enabled="true">
+      <profile name="Annotation profile for lecture-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />

@@ -6,9 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "lecture_questions")
@@ -35,7 +33,7 @@ public class LectureQuestion extends BaseEntity {
     private LectureQuestionStatus status = LectureQuestionStatus.PENDING;
 
     @OneToMany(mappedBy = "lectureQuestion", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<StudentResponse> studentResponses = new HashSet<>();
+    private List<StudentResponse> studentResponses = new ArrayList<>();
 
     public enum LectureQuestionStatus {
         PENDING, ACTIVE, COMPLETED

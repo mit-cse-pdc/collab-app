@@ -1,0 +1,70 @@
+type Query {
+    getAllLectures: [Lecture!]!
+}
+
+type Mutation {
+    createLecture(lectureInput: CreateLectureInput): Lecture!
+    updateLectureStatus(lectureId: ID!, status: LectureStatus!): Lecture!
+    updateLectureQuestionStatus(lectureQuestionId: ID!, status: LectureQuestionStatus!): LectureQuestion!
+    createStudentResponse(studentResponse: CreateStudentResponseInput): StudentResponse!
+}
+type Subscription {
+    getLectures: [Lecture!]!
+    getLectureDetails(lectureId: ID!): Lecture!
+}
+
+type Lecture {
+    lectureId: ID!
+    facultyId: ID!
+    chapterId: ID!
+    title: String!
+    status: LectureStatus!
+    lectureQuestions: [LectureQuestion!]!
+    createdAt: String!
+    updatedAt: String!
+}
+type LectureQuestion {
+    lectureQuestionId: ID!
+    questionId: ID!
+    lectureId: ID!
+    status: LectureQuestionStatus!
+    createdAt: String!
+    updatedAt: String!
+}
+type StudentResponse {
+    responseId: ID!
+    studentId: ID!
+    answerId: ID!
+    createdAt: String!
+    updatedAt: String!
+}
+
+#Input
+input CreateLectureInput {
+    facultyId: ID!
+    chapterId: ID!
+    title: String!
+    lectureQuestions: [CreateLectureQuestionInput]!
+}
+input CreateStudentResponseInput {
+    lectureId: ID!
+    questionId: ID!
+    answerId: ID!
+}
+input CreateLectureQuestionInput {
+    questionId: ID!
+}
+
+enum LectureStatus {
+    SCHEDULED
+    IN_PROGRESS
+    COMPLETED
+    CANCELLED
+}
+enum LectureQuestionStatus {
+    PENDING
+    ACTIVE
+    COMPLETED
+}
+
+

@@ -6,9 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "lectures")
@@ -37,7 +35,7 @@ public class Lecture extends BaseEntity {
     private LectureStatus status = LectureStatus.SCHEDULED;
 
     @OneToMany(mappedBy = "lecture", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<LectureQuestion> lectureQuestions = new HashSet<>();
+    private List<LectureQuestion> lectureQuestions = new ArrayList<>();
 
     public enum LectureStatus {
         SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED
