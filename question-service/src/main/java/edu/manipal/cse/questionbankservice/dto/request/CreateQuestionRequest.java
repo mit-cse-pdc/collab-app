@@ -6,8 +6,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -17,6 +19,8 @@ import java.util.UUID;
 @Schema(description = "Create Question Request")
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class CreateQuestionRequest implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

@@ -1,0 +1,168 @@
+type Query {
+    getLectureById(lectureId: ID!): Lecture
+    getLectures(filter: LectureFilterInput, pagination: PaginationInput): LecturePage!
+    getLectureQuestionById(lectureQuestionId: ID!): LectureQuestion
+    getQuestionsForLecture(lectureId: ID!, filter: LectureQuestionFilterInput): [LectureQuestion!]!
+    getMyLectures(filter: LectureFilterInput, pagination: PaginationInput): LecturePage!
+    getResponsesForLectureQuestion(lectureQuestionId: ID!): [StudentResponse!]!
+}
+
+type Mutation {
+    createLecture(input: CreateLectureInput!): CreateLecturePayload!
+    updateLectureStatus(input: UpdateLectureStatusInput!): UpdateLecturePayload!
+    updateLectureQuestionStatus(input: UpdateLectureQuestionStatusInput!): UpdateLectureQuestionPayload!
+    addQuestionsToLecture(input: AddQuestionsToLectureInput!): UpdateLecturePayload!
+    removeQuestionsFromLecture(input: RemoveQuestionsFromLectureInput!): UpdateLecturePayload!
+    createStudentResponse(input: CreateStudentResponseInput!): CreateStudentResponsePayload!
+}
+
+type Subscription {
+    lectureActivity: LectureEvent!
+    lectureUpdated(lectureId: ID!): Lecture!
+    studentResponseCountUpdated(lectureQuestionId: ID!): ResponseCount!
+    lectureQuestionStatusChanged(lectureQuestionId: ID!): LectureQuestion!
+    studentResponded(lectureQuestionId: ID!): StudentResponse!
+}
+
+type Lecture {
+    lectureId: ID!
+    facultyId: ID!
+    chapterId: ID!
+    title: String!
+    status: LectureStatus!
+    lectureQuestions: [LectureQuestion!]!
+    createdAt: String!
+    updatedAt: String!
+}
+
+type LectureQuestion {
+    lectureQuestionId: ID!
+    questionId: ID!
+    lecture: Lecture!
+    studentResponseCount: Int!
+    status: LectureQuestionStatus!
+    createdAt: String!
+    updatedAt: String!
+}
+
+type StudentResponse {
+    responseId: ID!
+    studentId: ID!
+    lectureQuestion: LectureQuestion!
+    answerId: ID!
+    createdAt: String!
+    updatedAt: String!
+}
+
+type LecturePage {
+    content: [Lecture!]!
+    totalElements: Int!
+    totalPages: Int!
+    currentPage: Int!
+    pageSize: Int!
+}
+
+type UserError {
+    field: String
+    message: String!
+}
+
+type ResponseCount {
+    lectureQuestionId: ID!
+    count: Int!
+}
+
+type LectureCreatedEvent {
+    lecture: Lecture!
+}
+type LectureUpdatedEvent {
+    lecture: Lecture!
+}
+type LectureDeletedEvent {
+    lectureId: ID!
+}
+union LectureEvent = LectureCreatedEvent | LectureUpdatedEvent | LectureDeletedEvent
+
+input CreateLectureInput {
+    facultyId: ID!
+    chapterId: ID!
+    title: String!
+    lectureQuestions: [CreateLectureQuestionInput!]
+}
+
+input AddQuestionsToLectureInput {
+    lectureId: ID!
+    questions: [CreateLectureQuestionInput!]!
+}
+
+input RemoveQuestionsFromLectureInput {
+    lectureId: ID!
+    lectureQuestionIds: [ID!]!
+}
+
+input CreateLectureQuestionInput {
+    questionId: ID!
+}
+
+input UpdateLectureStatusInput {
+    lectureId: ID!
+    status: LectureStatus!
+}
+
+input UpdateLectureQuestionStatusInput {
+    lectureQuestionId: ID!
+    status: LectureQuestionStatus!
+}
+
+input CreateStudentResponseInput {
+    lectureQuestionId: ID!
+    answerId: ID!
+}
+
+input LectureFilterInput {
+    facultyId: ID
+    chapterId: ID
+    status: LectureStatus
+}
+
+input LectureQuestionFilterInput {
+    status: LectureQuestionStatus
+}
+
+input PaginationInput {
+    page: Int = 0
+    size: Int = 10
+}
+
+type CreateLecturePayload {
+    lecture: Lecture
+    userErrors: [UserError!]!
+}
+
+type UpdateLecturePayload {
+    lecture: Lecture
+    userErrors: [UserError!]!
+}
+
+type UpdateLectureQuestionPayload {
+    lectureQuestion: LectureQuestion
+    userErrors: [UserError!]!
+}
+
+type CreateStudentResponsePayload {
+    studentResponse: StudentResponse
+    userErrors: [UserError!]!
+}
+
+enum LectureStatus {
+    SCHEDULED
+    IN_PROGRESS
+    COMPLETED
+    CANCELLED
+}
+
+enum LectureQuestionStatus {
+    PENDING
+    ACTIVE
+    COMPLETED
+}

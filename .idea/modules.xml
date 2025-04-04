@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/collab-app-project.iml" filepath="$PROJECT_DIR$/.idea/collab-app-project.iml" />
+      <module fileurl="file://$PROJECT_DIR$/question-service/question-service.iml" filepath="$PROJECT_DIR$/question-service/question-service.iml" />
     </modules>
   </component>
 </project>

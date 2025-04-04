@@ -14,8 +14,7 @@ public class LectureQuestionService {
     private final LectureQuestionRepository lectureQuestionRepository;
 
     public LectureQuestion updateLectureQuestionStatus(UUID lectureQuestionId, LectureQuestion.LectureQuestionStatus newStatus) throws ResourceNotFoundException {
-        return lectureQuestionRepository
-                .findById(lectureQuestionId)
+        return lectureQuestionRepository.findById(lectureQuestionId)
                 .map(lectureQuestion -> {
                     lectureQuestion.setStatus(newStatus);
                     return lectureQuestionRepository.save(lectureQuestion);

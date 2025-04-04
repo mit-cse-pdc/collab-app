@@ -1,18 +1,18 @@
 package edu.manipal.cse.questionbankservice.services.impl;
 
 import edu.manipal.cse.questionbankservice.clients.FacultyClient;
-import edu.manipal.cse.questionbankservice.dto.request.BulkQuestionRequest;
-import edu.manipal.cse.questionbankservice.dto.request.CreateQuestionRequest;
-import edu.manipal.cse.questionbankservice.dto.request.QuestionSearchRequest;
-import edu.manipal.cse.questionbankservice.dto.request.UpdateQuestionRequest;
+import edu.manipal.cse.questionbankservice.dto.request.*;
+import edu.manipal.cse.questionbankservice.dto.response.ApiResponse;
 import edu.manipal.cse.questionbankservice.dto.response.QuestionListResponse;
 import edu.manipal.cse.questionbankservice.dto.response.QuestionResponse;
+import edu.manipal.cse.questionbankservice.entities.Answer;
 import edu.manipal.cse.questionbankservice.entities.Chapter;
 import edu.manipal.cse.questionbankservice.entities.Question;
 import edu.manipal.cse.questionbankservice.exceptions.ResourceNotFoundException;
 import edu.manipal.cse.questionbankservice.mappers.QuestionMapper;
 import edu.manipal.cse.questionbankservice.repositories.ChapterRepository;
 import edu.manipal.cse.questionbankservice.repositories.QuestionRepository;
+import edu.manipal.cse.questionbankservice.services.AnswerService;
 import edu.manipal.cse.questionbankservice.services.QuestionService;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
@@ -24,6 +24,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +42,7 @@ public class QuestionServiceImpl implements QuestionService {
     private static final String CHAPTER_NOT_FOUND = "Chapter not found with ID: %s";
     private static final String QUESTION_NOT_FOUND = "Question not found with ID: %s";
 
+    private final AnswerService answerService;
     private final ChapterRepository chapterRepository;
     private final QuestionRepository questionRepository;
     private final FacultyClient facultyClient;
@@ -61,8 +63,19 @@ public class QuestionServiceImpl implements QuestionService {
 
         Question question = questionMapper.toEntity(request);
         question.setChapter(chapter);
-        Question savedQuestion = questionRepository.save(question);
 
+        // Ensure the bidirectional relationship is maintained
+        if (request.getAnswers() != null) {
+            for (CreateAnswerRequest answerRequest : request.getAnswers()) {
+                Answer answer = new Answer();
+                answer.setText(answerRequest.getText());
+                answer.setIsCorrect(answerRequest.getIsCorrect());
+                answer.setExplanation(answerRequest.getExplanation());
+                question.addAnswer(answer); // Use the helper method
+            }
+        }
+
+        Question savedQuestion = questionRepository.save(question);
         log.info("Created question with ID: {}", savedQuestion.getQuestionId());
         return questionMapper.toResponse(savedQuestion);
     }
@@ -226,13 +239,22 @@ public class QuestionServiceImpl implements QuestionService {
         return count == questionIds.size();
     }
 
+    @Override
+    public List<QuestionResponse> validateAllQuestions(List<UUID> uuids) {
+        return questionRepository.findByQuestionIdIn(uuids)
+                .stream()
+                .map(questionMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
     private void validateFacultyAndChapter(UUID facultyId, UUID chapterId) {
         validateFaculty(facultyId);
         validateChapter(chapterId);
     }
 
     private void validateFaculty(UUID facultyId) {
-        if (!facultyClient.facultyExistsById(facultyId)) {
+        ResponseEntity<ApiResponse<Boolean>> response = facultyClient.facultyExistsById(facultyId);
+        if (response == null || !Boolean.TRUE.equals(response.getBody().getData())) {
             throw new ResourceNotFoundException(String.format(FACULTY_NOT_FOUND, facultyId));
         }
     }

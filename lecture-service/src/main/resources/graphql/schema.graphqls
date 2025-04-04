@@ -8,6 +8,7 @@ type Mutation {
     updateLectureQuestionStatus(lectureQuestionId: ID!, status: LectureQuestionStatus!): LectureQuestion!
     createStudentResponse(studentResponse: CreateStudentResponseInput): StudentResponse!
 }
+
 type Subscription {
     getLectures: [Lecture!]!
     getLectureDetails(lectureId: ID!): Lecture!
@@ -23,14 +24,16 @@ type Lecture {
     createdAt: String!
     updatedAt: String!
 }
+
 type LectureQuestion {
     lectureQuestionId: ID!
     questionId: ID!
-    lectureId: ID!
+    lecture: Lecture!
     status: LectureQuestionStatus!
     createdAt: String!
     updatedAt: String!
 }
+
 type StudentResponse {
     responseId: ID!
     studentId: ID!
@@ -39,18 +42,20 @@ type StudentResponse {
     updatedAt: String!
 }
 
-#Input
+# Input Types
 input CreateLectureInput {
     facultyId: ID!
     chapterId: ID!
     title: String!
-    lectureQuestions: [CreateLectureQuestionInput]!
+    lectureQuestions: [CreateLectureQuestionInput]
 }
+
 input CreateStudentResponseInput {
     lectureId: ID!
     questionId: ID!
     answerId: ID!
 }
+
 input CreateLectureQuestionInput {
     questionId: ID!
 }
@@ -61,10 +66,9 @@ enum LectureStatus {
     COMPLETED
     CANCELLED
 }
+
 enum LectureQuestionStatus {
     PENDING
     ACTIVE
     COMPLETED
 }
-
-

@@ -224,3 +224,9 @@ CREATE INDEX idx_enrollments_course_id ON enrollments (course_id);
 CREATE INDEX idx_student_responses_student_id ON student_responses (student_id);
 CREATE INDEX idx_student_responses_lecture_question_id ON student_responses (lecture_question_id);
 CREATE INDEX idx_student_responses_answer_id ON student_responses (answer_id);
+
+ALTER TABLE lectures
+ALTER COLUMN status TYPE VARCHAR(50);
+
+ALTER TABLE lecture_questions
+    ALTER COLUMN status TYPE VARCHAR(50);

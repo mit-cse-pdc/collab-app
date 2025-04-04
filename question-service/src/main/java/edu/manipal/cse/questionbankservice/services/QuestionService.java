@@ -32,4 +32,6 @@ public interface QuestionService {
     // Validation Operations
     boolean checkQuestionOwnershipByFaculty(UUID questionId, UUID facultyId);
     boolean validateQuestionsInChapter(UUID chapterId, List<UUID> questionIds);
+
+    List<QuestionResponse> validateAllQuestions(List<UUID> uuids);
 }

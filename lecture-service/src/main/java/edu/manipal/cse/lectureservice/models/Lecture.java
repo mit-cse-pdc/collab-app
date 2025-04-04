@@ -1,42 +1,52 @@
 package edu.manipal.cse.lectureservice.models;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
-import java.util.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 
-@Entity
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 @Table(name = "lectures")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Lecture extends BaseEntity {
+@ToString
+public class Lecture {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "lecture_id")
+    @Column("lecture_id")
     private UUID lectureId;
 
-    @Column(name = "faculty_id", nullable = false)
+    @Column("faculty_id")
     private UUID facultyId;
 
-    @Column(name = "chapter_id", nullable = false)
+    @Column("chapter_id")
     private UUID chapterId;
 
-    @Column(name = "title", nullable = false)
+    @Column("title")
     private String title;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status")
+    @Column("status")
     private LectureStatus status = LectureStatus.SCHEDULED;
 
-    @OneToMany(mappedBy = "lecture", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<LectureQuestion> lectureQuestions = new ArrayList<>();
+    // --- Auditing Fields ---
+    @CreatedDate
+    @Column("created_at")
+    private LocalDateTime createdAt;
 
+    @LastModifiedDate
+    @Column("updated_at")
+    private LocalDateTime updatedAt;
+
+    // Enum definition remains the same
     public enum LectureStatus {
         SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED
     }

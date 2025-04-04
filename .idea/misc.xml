@@ -11,6 +11,7 @@
         <option value="$PROJECT_DIR$/master-data-service/pom.xml" />
         <option value="$PROJECT_DIR$/question-service/pom.xml" />
         <option value="$PROJECT_DIR$/lecture-service/pom.xml" />
+        <option value="$PROJECT_DIR$/lecture-service-reactive/pom.xml" />
       </list>
     </option>
   </component>

@@ -1,6 +1,8 @@
 package edu.manipal.cse.questionbankservice.clients;
 
+import edu.manipal.cse.questionbankservice.dto.response.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -10,5 +12,5 @@ import java.util.UUID;
 public interface FacultyClient {
 
     @GetMapping("/faculty/exists/{id}")
-    Boolean facultyExistsById(@PathVariable UUID id);
+    ResponseEntity<ApiResponse<Boolean>> facultyExistsById(@PathVariable UUID id);
 }

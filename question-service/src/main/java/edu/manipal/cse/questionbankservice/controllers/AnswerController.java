@@ -55,7 +55,7 @@ public class AnswerController {
         return ResponseEntity.ok(edu.manipal.cse.questionbankservice.dto.response.ApiResponse.createSuccess(null, "Answer deleted successfully", HttpStatus.NO_CONTENT.value()));
     }
 
-    @GetMapping("/{answerId}")
+    @GetMapping("/answers/{answerId}")
     @Operation(summary = "Get an answer by ID")
     public ResponseEntity<ApiResponse<AnswerResponse>> getAnswer(@PathVariable UUID answerId) {
         AnswerResponse response = answerService.getAnswer(answerId);

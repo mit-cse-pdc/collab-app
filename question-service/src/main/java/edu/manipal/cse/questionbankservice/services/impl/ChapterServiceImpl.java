@@ -4,6 +4,7 @@ import edu.manipal.cse.questionbankservice.clients.CourseClient;
 import edu.manipal.cse.questionbankservice.dto.request.CreateChapterRequest;
 import edu.manipal.cse.questionbankservice.dto.request.UpdateChapterOrderRequest;
 import edu.manipal.cse.questionbankservice.dto.request.UpdateChapterRequest;
+import edu.manipal.cse.questionbankservice.dto.response.ApiResponse;
 import edu.manipal.cse.questionbankservice.dto.response.ChapterListResponse;
 import edu.manipal.cse.questionbankservice.dto.response.ChapterResponse;
 import edu.manipal.cse.questionbankservice.dto.response.ChapterStatsResponse;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -158,7 +160,8 @@ public class ChapterServiceImpl implements ChapterService {
     }
 
     private void validateCourseExists(UUID courseId) {
-        if (!courseClient.courseExistsById(courseId)) {
+        ResponseEntity<ApiResponse<Boolean>> response = courseClient.courseExistsById(courseId);
+        if (response == null || !Boolean.TRUE.equals(response.getBody().getData())) {
             throw new ResourceNotFoundException(Messages.COURSE_NOT_FOUND + courseId);
         }
     }

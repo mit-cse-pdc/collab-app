@@ -32,10 +32,12 @@ spring:
   graphql:
     graphiql:
       enabled: true
+    websocket:
+      path: /graphql
 
-#eureka:
-#  client:
-#    service-url:
-#      defaultZone: http://localhost:8761/eureka/
-#  instance:
-#    prefer-ip-address: true
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true

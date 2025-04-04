@@ -3,8 +3,10 @@ package edu.manipal.cse.questionbankservice.dto.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -12,6 +14,8 @@ import java.io.Serializable;
 @Schema(description = "Create Answer Request")
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class CreateAnswerRequest implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

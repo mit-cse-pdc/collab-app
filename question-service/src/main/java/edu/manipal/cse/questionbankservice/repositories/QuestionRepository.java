@@ -15,6 +15,7 @@ public interface QuestionRepository extends JpaRepository<Question, UUID>, JpaSp
     List<Question> findByFacultyIdAndChapter_ChapterId(UUID facultyId, UUID chapterId);
     boolean existsByQuestionIdAndFacultyId(UUID questionId, UUID facultyId);
     List<Question> findByChapter_CourseId(UUID courseId);
+    List<Question>  findByQuestionIdIn(List<UUID> questionIds);
 
     // Additional useful methods
     List<Question> findByChapter_ChapterIdAndQuestionType(UUID chapterId, Question.QuestionType questionType);

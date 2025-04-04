@@ -123,4 +123,11 @@ public class QuestionController {
         QuestionListResponse response = questionService.getAllQuestions();
         return ResponseEntity.ok(ApiResponse.createSuccess(response, "All questions retrieved successfully", HttpStatus.OK.value()));
     }
+
+    @PostMapping("/validate")
+    @Operation(summary = "Validate all questions from a list of uuid of question ids")
+    public ResponseEntity<ApiResponse<List<QuestionResponse>>> validateAllQuestions(@RequestBody List<UUID> uuids) {
+        List<QuestionResponse> responses = questionService.validateAllQuestions(uuids);
+        return ResponseEntity.ok(ApiResponse.createSuccess(responses, "Questions validated successfully", HttpStatus.OK.value()));
+    }
 }

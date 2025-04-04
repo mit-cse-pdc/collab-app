@@ -20,17 +20,7 @@
         </processorPath>
         <module name="master-data-service" />
       </profile>
-      <profile name="Annotation profile for user-service" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
-        </processorPath>
-        <module name="user-service" />
-      </profile>
-      <profile name="Annotation profile for lecture-service" enabled="true">
+      <profile name="Annotation profile for lecture-service-reactive" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -38,6 +28,8 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
         </processorPath>
         <module name="lecture-service" />
+        <module name="lecture-service-reactive" />
+        <module name="user-service" />
         <module name="question-service" />
       </profile>
     </annotationProcessing>
@@ -51,6 +43,7 @@
       <module name="eureka-service" options="-parameters" />
       <module name="gateway-service" options="-parameters" />
       <module name="lecture-service" options="-parameters" />
+      <module name="lecture-service-reactive" options="-parameters" />
       <module name="master-data-service" options="-parameters" />
       <module name="question-service" options="-parameters" />
       <module name="user-service" options="-parameters" />

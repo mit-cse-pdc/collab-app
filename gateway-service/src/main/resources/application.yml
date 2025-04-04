@@ -35,6 +35,15 @@ spring:
           filters:
             - StripPrefix=0
             - name: JwtAuthenticationFilter
+
+        - id: lecture-service-reactive
+          uri: lb://LECTURE-SERVICE-REACTIVE
+          predicates:
+            - Path=/lectures/graphql # <-- Route for GraphQL
+          filters:
+            - StripPrefix=0
+            - JwtAuthenticationFilter
+
   cache:
     type: redis
   data:

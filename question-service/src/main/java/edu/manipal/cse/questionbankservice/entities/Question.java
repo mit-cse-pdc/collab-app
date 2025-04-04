@@ -44,4 +44,14 @@ public class Question extends BaseEntity {
         TRUE_FALSE,
         SHORT_ANSWER
     }
+
+    public void addAnswer(Answer answer) {
+        answers.add(answer);
+        answer.setQuestion(this); // Set the question field in the Answer entity
+    }
+
+    public void removeAnswer(Answer answer) {
+        answers.remove(answer);
+        answer.setQuestion(null); // Clear the question field in the Answer entity
+    }
 }
